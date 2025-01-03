@@ -1,0 +1,30 @@
+{
+  "name": "pixel-walker-copy-bot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev-logging": "vite --debug",
+    "build": "vite build",
+    "quick-build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "format": "prettier src --write"
+  },
+  "dependencies": {
+    "@types/node": "^22.10.1",
+    "pw-js-api": "^0.0.5",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.7.5"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
+  }
+}
