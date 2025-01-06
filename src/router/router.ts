@@ -1,18 +1,28 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 import * as Routes from './routes'
+import { usePWClientStore } from '@/stores/PWClient.ts'
 
 const buildRouter = () => {
   const routes: RouteRecordRaw[] = [...Object.values(Routes)].sort((a, b): number => {
     return a.path.length < b.path.length ? 1 : -1
   })
 
-  return createRouter({
+  const router = createRouter({
     history: createWebHistory(),
-    routes: [
-      ...routes,
-    ],
+    routes: [...routes],
   })
+
+  router.beforeEach((to) => {
+    const PWClientStore = usePWClientStore()
+    if (PWClientStore.pwApiClient === undefined || PWClientStore.pwGameClient === undefined) {
+      if (to.name !== 'login') {
+        return { name: 'login' }
+      }
+    }
+  })
+
+  return router
 }
 
 export { buildRouter as createRouter }

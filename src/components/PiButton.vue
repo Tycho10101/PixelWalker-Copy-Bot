@@ -1,6 +1,6 @@
 <template>
-  <v-btn :loading="loading" :disabled="loading" class="mt-2" type="submit" block>
-    {{ text }}
+  <v-btn :loading="loading" :disabled="loading" class="mt-2" block c>
+    <slot></slot>
   </v-btn>
 </template>
 
@@ -13,10 +13,6 @@ export default defineComponent({
     loading: {
       type: Boolean,
       default: false,
-    },
-    text: {
-      type: String,
-      default: 'Connect',
     },
   },
 })

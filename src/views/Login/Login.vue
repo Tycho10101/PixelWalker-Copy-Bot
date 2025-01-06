@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Home from './Home.ts'
+import Home from './Login.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
@@ -30,11 +30,11 @@ export default defineComponent({
           <PiTextField v-model="worldId" :required="true" label="World ID"></PiTextField>
         </v-row>
         <v-row>
-          <PiButton :loading="loading">Connect</PiButton>
+          <PiButton :loading="loading" type="submit" color="green">Connect</PiButton>
         </v-row>
       </v-col>
     </v-form>
   </PiCardContainer>
 </template>
 
-<style scoped src="./Home.css" />
+<style scoped src="./Login.css" />
