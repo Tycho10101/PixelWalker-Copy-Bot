@@ -1,7 +1,7 @@
 import { defineComponent, markRaw, onBeforeMount, ref } from 'vue'
 
 import { PWApiClient } from 'pw-js-api'
-import { VForm } from 'vuetify/lib/components/VForm'
+import { VForm } from 'vuetify/components'
 import { usePWClientStore } from '@/stores/PWClient.ts'
 import { BotInfoRoute } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
@@ -12,7 +12,7 @@ export default defineComponent({
     const password = ref('')
     const worldId = ref('')
     const loading = ref(false)
-    const form = ref<VForm>(null)
+    const form = ref<VForm>()
 
     const PWClientStore = usePWClientStore()
     const router = useRouter()
@@ -20,8 +20,7 @@ export default defineComponent({
     onBeforeMount(async () => {})
 
     async function onConnectButtonClick() {
-      if (!(await form.value.validate()).valid) {
-        console.log('invalid')
+      if (!(await form.value!.validate()).valid) {
         return
       }
 

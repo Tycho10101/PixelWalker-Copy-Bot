@@ -4,7 +4,7 @@
   </v-btn>
 </template>
 
-<script>
+<script setup lang="ts">
 import { defineComponent } from 'vue'
 
 export default defineComponent({

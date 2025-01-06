@@ -1,16 +1,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Home from './Login.ts'
+import Login from './Login.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
 
 export default defineComponent({
   components: { PiCardContainer, PiTextField, PiButton },
-  extends: Home,
+  extends: Login,
   setup(props, ctx) {
     return {
-      ...Home.setup(props, ctx),
+      ...Login.setup(props, ctx),
     }
   },
 })
