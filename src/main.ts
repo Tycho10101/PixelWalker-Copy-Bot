@@ -8,7 +8,6 @@ const pinia = createPinia()
 const router = createRouter() // Relies on pinia being initialised
 const app = createApp(App)
 
-console.log('main')
 app.use(vuetify)
 app.use(pinia)
 app.use(router)
