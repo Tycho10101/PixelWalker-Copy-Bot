@@ -10,7 +10,7 @@ export default defineComponent({
   extends: BotInfo,
   setup(props, ctx) {
     return {
-      ...BotInfo.setup(props, ctx),
+      ...BotInfo.setup!(props, ctx),
     }
   },
 })

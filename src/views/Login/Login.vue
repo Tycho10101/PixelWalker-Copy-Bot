@@ -10,7 +10,7 @@ export default defineComponent({
   extends: Login,
   setup(props, ctx) {
     return {
-      ...Login.setup(props, ctx),
+      ...Login.setup!(props, ctx),
     }
   },
 })
