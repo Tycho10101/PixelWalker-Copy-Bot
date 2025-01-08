@@ -24,7 +24,7 @@ export default defineComponent({
           <PiTextField v-model="email" :required="true" label="Email"></PiTextField>
         </v-row>
         <v-row>
-          <PiTextField v-model="password" :required="true" label="Password"></PiTextField>
+          <PiTextField v-model="password" :required="true" label="Password" type="password"></PiTextField>
         </v-row>
         <v-row>
           <PiTextField v-model="worldId" :required="true" label="World ID"></PiTextField>
