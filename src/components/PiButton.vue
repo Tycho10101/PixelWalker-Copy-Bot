@@ -1,19 +1,15 @@
 <template>
-  <v-btn :loading="loading" :disabled="loading" class="mt-2" block c>
+  <v-btn :loading="props.loading" :disabled="props.loading" class="mt-2" block c>
     <slot></slot>
   </v-btn>
 </template>
 
 <script setup lang="ts">
-import { defineComponent } from 'vue'
+interface Props {
+  loading?: boolean
+}
 
-export default defineComponent({
-  name: 'PiButton',
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
 })
 </script>
