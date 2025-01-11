@@ -23,7 +23,9 @@ export default defineComponent({
         <v-banner-text> Connected!</v-banner-text>
       </v-row>
       <v-row>
+        <!--        TODO fix loading-->
         <PiButton :loading="loading" @click="onDisconnectButtonClick" color="red">Disconnect</PiButton>
+        <!--        TODO: add reconnect button-->
       </v-row>
     </v-col>
   </PiCardContainer>
