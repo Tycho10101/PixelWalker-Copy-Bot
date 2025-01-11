@@ -2,7 +2,7 @@ import 'izitoast/dist/css/iziToast.min.css'
 import iZtoast from 'izitoast'
 
 export const MessageService = {
-  error: (message, title = 'Error') => {
+  error: (message: string, title = 'Error') => {
     return iZtoast.error({
       color: '#FF7F27',
       title: title,
@@ -11,7 +11,7 @@ export const MessageService = {
       position: 'bottomCenter',
     })
   },
-  success: (message, title = 'success') => {
+  success: (message: string, title = 'success') => {
     return iZtoast.success({
       color: '#66DD00',
       title: title,
@@ -19,7 +19,7 @@ export const MessageService = {
       position: 'bottomCenter',
     })
   },
-  info: (message, title = 'info') => {
+  info: (message: string, title = 'info') => {
     return iZtoast.info({
       color: '#66AADD',
       title: title,
@@ -27,7 +27,7 @@ export const MessageService = {
       position: 'bottomCenter',
     })
   },
-  question: (message, onYes, title = 'question') => {
+  question: (message: string, onYes: () => void, title = 'question') => {
     return iZtoast.question({
       title: title,
       message: message,
