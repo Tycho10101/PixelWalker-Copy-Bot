@@ -1,17 +1,19 @@
-import { defineComponent, markRaw, onBeforeMount, ref } from 'vue'
+import { defineComponent, onBeforeMount, ref } from 'vue'
 
 import { PWApiClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
 import { usePWClientStore } from '@/stores/PWClient.ts'
-import { BotInfoRoute } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
+import { MessageService } from '@/services/MessageService.ts'
+import { GENERAL_CONSTANTS } from '@/constants/general.ts'
+import { BotInfoRoute } from '@/router/routes.ts'
 
 export default defineComponent({
   setup() {
     const email = ref('')
     const password = ref('')
     const worldId = ref('')
-    const loading = ref(false)
+    const loading = { loading: ref(false) }
     const form = ref<VForm>()
 
     const PWClientStore = usePWClientStore()
@@ -19,25 +21,71 @@ export default defineComponent({
 
     onBeforeMount(async () => {})
 
+    async function authenticate(pwApiClient: PWApiClient): Promise<boolean> {
+      const authenticationResult = await pwApiClient.authenticate()
+
+      if ('token' in authenticationResult) {
+        return true
+      }
+
+      if ('message' in authenticationResult) {
+        MessageService.error(authenticationResult.message)
+      } else {
+        MessageService.error(GENERAL_CONSTANTS.GENERIC_ERROR)
+      }
+
+      return false
+    }
+
+    async function joinWorld(pwApiClient: PWApiClient): Promise<boolean> {
+      try {
+        PWClientStore.pwGameClient = await pwApiClient.joinWorld(worldId.value, {
+          gameSettings: {
+            handlePackets: ['PING'],
+          },
+        })
+        PWClientStore.pwGameClient.addCallback('debug', console.log)
+
+        PWClientStore.pwGameClient
+          .addCallback('playerInitPacket', (data) => {
+            console.log('Connected as ' + data.playerProperties?.username)
+
+            // if (data.playerProperties) {
+            //   botId = data.playerProperties.playerId
+            //   isOwner = data.playerProperties.isWorldOwner
+            // }
+
+            PWClientStore.pwGameClient?.send('playerInitReceived')
+          })
+          .addCallback('playerJoinedPacket', (data) => {
+            // console.log(
+            //   data.properties?.username + (data.properties.playerId < botId ? ' is here.' : ' joined the world.'),
+            // )
+          })
+        return true
+      } catch (e) {
+        MessageService.error('Failed to join world. ' + e.message)
+        return false
+      }
+    }
+
     async function onConnectButtonClick() {
       if (!(await form.value!.validate()).valid) {
         return
       }
 
-      loading.value = true
+      PWClientStore.pwApiClient = new PWApiClient(email.value, password.value)
 
-      PWClientStore.pwApiClient = markRaw(new PWApiClient(email.value, password.value))
+      if (!(await authenticate(PWClientStore.pwApiClient))) {
+        return
+      }
+
+      if (!(await joinWorld(PWClientStore.pwApiClient))) {
+        return
+      }
 
       // const mappings = await pwApiClient.getMappings()
       // const blockIdToType = swapObject(mappings)
-
-      // To fetch the token, allowing it to join a world.
-      await PWClientStore.pwApiClient.authenticate()
-      PWClientStore.pwGameClient = await PWClientStore.pwApiClient.joinWorld(worldId.value, {
-        gameSettings: {
-          handlePackets: ['PING'],
-        },
-      })
 
       await router.push({ name: BotInfoRoute.name })
 
@@ -165,9 +213,12 @@ export default defineComponent({
       //   return res
       // }
       //
-      // const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-      // // await sleep(2000) // TODO: test loading.value = true/false
-      // loading.value = false
+
+      //
+    }
+
+    function setWorldId() {
+      worldId.value = 'r3c188b31614b7f'
     }
 
     return {
@@ -177,6 +228,7 @@ export default defineComponent({
       loading,
       form,
       onConnectButtonClick,
+      setWorldId,
     }
   },
 })

@@ -4,8 +4,10 @@ import Login from './Login.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
+import { withLoading } from '@/services/LoaderProxy.ts'
 
 export default defineComponent({
+  methods: { withLoading },
   components: { PiCardContainer, PiTextField, PiButton },
   extends: Login,
   setup(props, ctx) {
@@ -18,7 +20,7 @@ export default defineComponent({
 
 <template>
   <PiCardContainer>
-    <v-form ref="form" validate-on="submit lazy" @submit.prevent="onConnectButtonClick">
+    <v-form ref="form" validate-on="submit lazy" @submit.prevent="withLoading(loading.loading, onConnectButtonClick)">
       <v-col>
         <v-row>
           <PiTextField v-model="email" :required="true" label="Email"></PiTextField>
@@ -30,7 +32,11 @@ export default defineComponent({
           <PiTextField v-model="worldId" :required="true" label="World ID"></PiTextField>
         </v-row>
         <v-row>
-          <PiButton :loading="loading" type="submit" color="green">Connect</PiButton>
+          <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>
+        </v-row>
+
+        <v-row>
+          <PiButton color="blue" @click="setWorldId">set world id</PiButton>
         </v-row>
       </v-col>
     </v-form>
