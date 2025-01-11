@@ -13,8 +13,7 @@ export default defineComponent({
     onBeforeMount(async () => {})
 
     async function onDisconnectButtonClick() {
-      PWClientStore.pwGameClient!.settings.reconnectable = false
-      PWClientStore.pwGameClient!.socket?.close()
+      PWClientStore.pwGameClient?.disconnect(false)
 
       PWClientStore.pwGameClient = undefined
       PWClientStore.pwApiClient = undefined
