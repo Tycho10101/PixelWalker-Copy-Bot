@@ -21,8 +21,8 @@ export default defineComponent({
 
     onBeforeMount(async () => {})
 
-    async function authenticate(pwApiClient: PWApiClient): Promise<boolean> {
-      const authenticationResult = await pwApiClient.authenticate()
+    async function authenticate(): Promise<boolean> {
+      const authenticationResult = await PWClientStore.pwApiClient!.authenticate()
 
       if ('token' in authenticationResult) {
         return true
@@ -37,9 +37,9 @@ export default defineComponent({
       return false
     }
 
-    async function joinWorld(pwApiClient: PWApiClient): Promise<boolean> {
+    async function joinWorld(): Promise<boolean> {
       try {
-        PWClientStore.pwGameClient = await pwApiClient.joinWorld(worldId.value, {
+        PWClientStore.pwGameClient = await PWClientStore.pwApiClient!.joinWorld(worldId.value, {
           gameSettings: {
             handlePackets: ['PING'],
           },
@@ -76,11 +76,11 @@ export default defineComponent({
 
       PWClientStore.pwApiClient = new PWApiClient(email.value, password.value)
 
-      if (!(await authenticate(PWClientStore.pwApiClient))) {
+      if (!(await authenticate())) {
         return
       }
 
-      if (!(await joinWorld(PWClientStore.pwApiClient))) {
+      if (!(await joinWorld())) {
         return
       }
 
