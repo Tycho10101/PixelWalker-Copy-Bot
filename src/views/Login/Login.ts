@@ -84,10 +84,6 @@ export default defineComponent({
       await router.push({ name: BotInfoRoute.name })
     }
 
-    function setWorldId() {
-      worldId.value = 'r3c188b31614b7f'
-    }
-
     return {
       email,
       password,
@@ -95,7 +91,6 @@ export default defineComponent({
       loading,
       form,
       onConnectButtonClick,
-      setWorldId,
     }
   },
 })
