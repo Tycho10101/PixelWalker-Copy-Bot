@@ -14,6 +14,10 @@ const buildRouter = () => {
   })
 
   router.beforeEach((to) => {
+    if (to.name === 'notFound') {
+      return { name: 'login' }
+    }
+
     const PWClientStore = usePWClientStore()
     if (PWClientStore.pwApiClient === undefined || PWClientStore.pwGameClient === undefined) {
       if (to.name !== 'login') {

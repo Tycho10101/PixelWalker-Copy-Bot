@@ -78,7 +78,7 @@ export default defineComponent({
       getPwGameClient().addCallback('playerInitPacket', (data) => {
         PWClientStore.selfPlayerId = data.playerProperties?.playerId
 
-        getPwGameClient().send('playerInitReceived')
+        getPwGameClient()?.send('playerInitReceived')
       })
 
       await router.push({ name: BotInfoRoute.name })
