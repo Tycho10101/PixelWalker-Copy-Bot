@@ -20,7 +20,12 @@ export default defineComponent({
 
 <template>
   <PiCardContainer>
-    <v-form ref="form" validate-on="submit lazy" @submit.prevent="withLoading(loading.loading, onConnectButtonClick)">
+    <v-form
+      ref="form"
+      validate-on="submit lazy"
+      @submit.prevent="withLoading(loading.loading, onConnectButtonClick)"
+      autocomplete="on"
+    >
       <v-col>
         <v-row>
           <PiTextField v-model="email" :required="true" label="Email"></PiTextField>
