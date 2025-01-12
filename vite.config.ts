@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
-    base: 'https://piratux.github.io/Pixel-Walker-Copy-Bot/',
+    base: '/Pixel-Walker-Copy-Bot/',
     plugins: [vue()],
     optimizeDeps: {
       esbuildOptions: {
