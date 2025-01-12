@@ -39,10 +39,6 @@ export default defineComponent({
         <v-row>
           <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>
         </v-row>
-
-        <v-row>
-          <PiButton color="blue" @click="setWorldId">set world id</PiButton>
-        </v-row>
       </v-col>
     </v-form>
   </PiCardContainer>
