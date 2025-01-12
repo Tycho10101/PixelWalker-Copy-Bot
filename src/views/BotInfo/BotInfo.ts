@@ -65,6 +65,8 @@ export default defineComponent({
 
       const blockPos = data.positions[0]
 
+      // FIXME: selecting gold coin doesn't work
+      // FIXME: save selected blocks in memory
       if (data.blockId === BlockMappings['coin_gold']) {
         const oldBlockId = getWorld().structure.foreground[blockPos.x][blockPos.y].id
 
@@ -87,16 +89,22 @@ export default defineComponent({
       if (data.blockId === BlockMappings['coin_blue']) {
         for (let x = 0; x <= Math.abs(selectedFromPos.x - selectedToPos.x); x++) {
           for (let y = 0; y <= Math.abs(selectedFromPos.y - selectedToPos.y); y++) {
-            const copiedBlockId = getWorld().structure.foreground[selectedFromPos.x + x][selectedFromPos.y + y].id
-            placeBlock(copiedBlockId, 1, { x: blockPos.x + x, y: blockPos.y + y })
+            const dirX = selectedFromPos.x <= selectedToPos.x ? 1 : -1
+            const dirY = selectedFromPos.y <= selectedToPos.y ? 1 : -1
+            const sourcePosX = selectedFromPos.x + x * dirX
+            const sourcePosY = selectedFromPos.y + y * dirY
+            const targetPosX = blockPos.x + x * dirX
+            const targetPosY = blockPos.y + y * dirY
+            const copiedBlockId = getWorld().structure.foreground[sourcePosX][sourcePosY].id
+            placeBlock(copiedBlockId, 1, { x: targetPosX, y: targetPosY })
           }
         }
       }
     }
 
     // TODO: use block scheduler instead
+    // TODO: fix this not working for more complex objects, like switches
     function placeBlock(blockId: number, layer: number, position: { x: number; y: number }) {
-      // TODO: fix this not working for more complex objects, like switches
       getPwGameClient().send('worldBlockPlacedPacket', {
         blockId: blockId,
         layer: layer,
