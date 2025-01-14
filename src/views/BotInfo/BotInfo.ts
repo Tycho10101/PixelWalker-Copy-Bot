@@ -7,6 +7,7 @@ import { PlayerChatPacket, PointInteger, WorldBlockPlacedPacket } from 'pw-js-ap
 import World from '@/services/world/world.ts'
 import BlockScheduler from '@/services/scheduler/block.ts'
 import { BlockMappings } from '@/services/BlockMappings.ts'
+import { cloneDeep } from 'lodash-es'
 
 export default defineComponent({
   setup() {
@@ -33,6 +34,7 @@ export default defineComponent({
 
     // Bot data
     // TODO: move it later elsewhere
+    // TODO: store this for each player independently
     let botState: BotState = BotState.NONE
     let selectedFromPos: { x: number; y: number }
     let selectedToPos: { x: number; y: number }
@@ -66,8 +68,6 @@ export default defineComponent({
 
       const blockPos = data.positions[0]
 
-      // FIXME: selecting gold coin doesn't work
-      // FIXME: save selected blocks in memory
       if (data.blockId === BlockMappings['coin_gold']) {
         const oldBlockId = getWorld().structure.foreground[blockPos.x][blockPos.y].id
 
@@ -90,9 +90,7 @@ export default defineComponent({
       }
 
       if (data.blockId === BlockMappings['coin_blue']) {
-        for (const selectedBlock of selectedAreaData) {
-          placeBlock(selectedBlock.blockId, 1, { x: blockPos.x + selectedBlock.x, y: blockPos.y + selectedBlock.y })
-        }
+        placeMultipleBlocks(blockPos, selectedAreaData, 1)
       }
     }
 
@@ -113,7 +111,6 @@ export default defineComponent({
       return data
     }
 
-    // TODO: use block scheduler instead
     // TODO: fix this not working for more complex objects, like switches
     function placeBlock(blockId: number, layer: number, position: { x: number; y: number }) {
       getPwGameClient().send('worldBlockPlacedPacket', {
@@ -122,6 +119,38 @@ export default defineComponent({
         positions: [position as PointInteger],
         isFillOperation: false,
       })
+    }
+
+    function placeMultipleBlocks(
+      startPos: { x: number; y: number },
+      blockData: { blockId: number; x: number; y: number }[],
+      layer: number,
+    ) {
+      let data = cloneDeep(blockData)
+
+      const mergedData = Object.values(
+        data.reduce(
+          (acc, { blockId, x, y }) => {
+            const position = { x: x + startPos.x, y: y + startPos.y }
+            if (!acc[blockId]) {
+              acc[blockId] = { blockId, positions: [position] }
+            } else {
+              acc[blockId].positions.push(position)
+            }
+            return acc
+          },
+          {} as Record<number, { blockId: number; positions: { x: number; y: number }[] }>,
+        ),
+      )
+
+      for (const block of mergedData) {
+        getPwGameClient().send('worldBlockPlacedPacket', {
+          blockId: block.blockId,
+          layer: layer,
+          positions: block.positions,
+          isFillOperation: false,
+        })
+      }
     }
 
     function sendChatMessage(message: string) {
