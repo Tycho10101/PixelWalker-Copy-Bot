@@ -10,7 +10,7 @@ import { BlockMappings } from '@/services/BlockMappings.ts'
 
 export default defineComponent({
   setup() {
-    const loading = ref(false)
+    const loading = { loading: ref(false) }
 
     const PWClientStore = usePWClientStore()
     const router = useRouter()

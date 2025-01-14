@@ -4,8 +4,10 @@ import BotInfo from './BotInfo.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
+import { withLoading } from '@/services/LoaderProxy.ts'
 
 export default defineComponent({
+  methods: { withLoading },
   components: { PiCardContainer, PiTextField, PiButton },
   extends: BotInfo,
   setup(props, ctx) {
@@ -21,8 +23,12 @@ export default defineComponent({
     <v-col>
       <v-row><h3>Connected!</h3></v-row>
       <v-row>
-        <!--        TODO fix loading-->
-        <PiButton :loading="loading" color="red" @click="onDisconnectButtonClick">Disconnect</PiButton>
+        <PiButton
+          :loading="loading.loading.value"
+          color="red"
+          @click="withLoading(loading.loading, onDisconnectButtonClick)"
+          >Disconnect</PiButton
+        >
       </v-row>
     </v-col>
   </PiCardContainer>
