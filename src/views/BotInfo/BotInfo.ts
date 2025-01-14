@@ -36,6 +36,7 @@ export default defineComponent({
     let botState: BotState = BotState.NONE
     let selectedFromPos: { x: number; y: number }
     let selectedToPos: { x: number; y: number }
+    let selectedAreaData: { x: number; y: number; blockId: number }[] = []
 
     onBeforeMount(async () => {
       getPwGameClient().addCallback('playerChatPacket', playerChatPacketReceived)
@@ -72,34 +73,44 @@ export default defineComponent({
 
         placeBlock(oldBlockId, 1, { x: blockPos.x, y: blockPos.y })
 
-        let selectedType: string
+        let selectedTypeText: string
         if ([BotState.NONE, BotState.SELECTED_TO].includes(botState)) {
-          selectedType = 'from'
+          selectedTypeText = 'from'
           botState = BotState.SELECTED_FROM
           selectedFromPos = blockPos
         } else {
-          selectedType = 'to'
+          selectedTypeText = 'to'
           botState = BotState.SELECTED_TO
           selectedToPos = blockPos
+
+          selectedAreaData = getSelectedAreaCopy()
         }
 
-        sendChatMessage(`Selected ${selectedType} x: ${blockPos.x} y: ${blockPos.y}`)
+        sendChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`)
       }
 
       if (data.blockId === BlockMappings['coin_blue']) {
-        for (let x = 0; x <= Math.abs(selectedFromPos.x - selectedToPos.x); x++) {
-          for (let y = 0; y <= Math.abs(selectedFromPos.y - selectedToPos.y); y++) {
-            const dirX = selectedFromPos.x <= selectedToPos.x ? 1 : -1
-            const dirY = selectedFromPos.y <= selectedToPos.y ? 1 : -1
-            const sourcePosX = selectedFromPos.x + x * dirX
-            const sourcePosY = selectedFromPos.y + y * dirY
-            const targetPosX = blockPos.x + x * dirX
-            const targetPosY = blockPos.y + y * dirY
-            const copiedBlockId = getWorld().structure.foreground[sourcePosX][sourcePosY].id
-            placeBlock(copiedBlockId, 1, { x: targetPosX, y: targetPosY })
-          }
+        for (const selectedBlock of selectedAreaData) {
+          placeBlock(selectedBlock.blockId, 1, { x: blockPos.x + selectedBlock.x, y: blockPos.y + selectedBlock.y })
         }
       }
+    }
+
+    function getSelectedAreaCopy() {
+      let data = []
+      const dirX = selectedFromPos.x <= selectedToPos.x ? 1 : -1
+      const dirY = selectedFromPos.y <= selectedToPos.y ? 1 : -1
+      for (let x = 0; x <= Math.abs(selectedFromPos.x - selectedToPos.x); x++) {
+        for (let y = 0; y <= Math.abs(selectedFromPos.y - selectedToPos.y); y++) {
+          const sourcePosX = selectedFromPos.x + x * dirX
+          const sourcePosY = selectedFromPos.y + y * dirY
+          const dataPosX = x * dirX
+          const dataPosY = y * dirY
+          const copiedBlockId = getWorld().structure.foreground[sourcePosX][sourcePosY].id
+          data.push({ blockId: copiedBlockId, x: dataPosX, y: dataPosY })
+        }
+      }
+      return data
     }
 
     // TODO: use block scheduler instead
