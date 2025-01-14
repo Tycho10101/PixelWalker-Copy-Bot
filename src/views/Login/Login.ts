@@ -1,4 +1,4 @@
-import { defineComponent, onBeforeMount, ref } from 'vue'
+import { computed, defineComponent, onBeforeMount, ref } from 'vue'
 
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
@@ -18,6 +18,8 @@ export default defineComponent({
 
     const router = useRouter()
     const PWClientStore = usePWClientStore()
+
+    const showSetDefaultWorldIdButton = computed(() => import.meta.env.VITE_SHOW_SET_DEFAULT_WORLD_ID_BUTTON === 'TRUE')
 
     const getPwGameClient = (): PWGameClient => {
       return PWClientStore.pwGameClient!
@@ -84,6 +86,10 @@ export default defineComponent({
       await router.push({ name: BotInfoRoute.name })
     }
 
+    function setDefaultWorldIdButtonClicked() {
+      worldId.value = import.meta.env.VITE_DEFAULT_WORLD_ID
+    }
+
     return {
       email,
       password,
@@ -91,6 +97,8 @@ export default defineComponent({
       loading,
       form,
       onConnectButtonClick,
+      showSetDefaultWorldIdButton,
+      setDefaultWorldIdButtonClicked,
     }
   },
 })
