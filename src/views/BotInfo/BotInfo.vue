@@ -19,13 +19,18 @@ export default defineComponent({
 <template>
   <PiCardContainer>
     <v-col>
-      <v-row>
-        <v-banner-text> Connected!</v-banner-text>
-      </v-row>
+      <v-row><h3>Connected!</h3></v-row>
       <v-row>
         <!--        TODO fix loading-->
-        <PiButton :loading="loading" @click="onDisconnectButtonClick" color="red">Disconnect</PiButton>
+        <PiButton :loading="loading" color="red" @click="onDisconnectButtonClick">Disconnect</PiButton>
       </v-row>
+    </v-col>
+  </PiCardContainer>
+  <PiCardContainer>
+    <v-col>
+      <v-row><h3>Usage info</h3></v-row>
+      <v-row> Select area to copy - gold coin</v-row>
+      <v-row> Paste selected area - blue coin</v-row>
     </v-col>
   </PiCardContainer>
 </template>
