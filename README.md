@@ -15,3 +15,8 @@ npm run dev
 
 Then open up this:\
 http://localhost:3000/Pixel-Walker-Copy-Bot/
+
+### Local env files
+To have custom config only when running locally:
+- Create `.env.local` file at the root of the project as a copy of `.env`
+- Modify the values in `.env.local` to your needs
