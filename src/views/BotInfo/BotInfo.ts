@@ -32,13 +32,24 @@ export default defineComponent({
       SELECTED_TO = 3,
     }
 
+    type Position = {
+      x: number
+      y: number
+    }
+
+    type BlockInfo = {
+      x: number
+      y: number
+      blockId: number
+    }
+
     // Bot data
     // TODO: move it later elsewhere
     // TODO: store this for each player independently
     let botState: BotState = BotState.NONE
-    let selectedFromPos: { x: number; y: number }
-    let selectedToPos: { x: number; y: number }
-    let selectedAreaData: { x: number; y: number; blockId: number }[] = []
+    let selectedFromPos: Position
+    let selectedToPos: Position
+    let selectedAreaData: BlockInfo[] = []
 
     onBeforeMount(async () => {
       getPwGameClient().addCallback('playerChatPacket', playerChatPacketReceived)
@@ -112,7 +123,7 @@ export default defineComponent({
     }
 
     // TODO: fix this not working for more complex objects, like switches
-    function placeBlock(blockId: number, layer: number, position: { x: number; y: number }) {
+    function placeBlock(blockId: number, layer: number, position: Position) {
       getPwGameClient().send('worldBlockPlacedPacket', {
         blockId: blockId,
         layer: layer,
@@ -122,7 +133,7 @@ export default defineComponent({
     }
 
     function placeMultipleBlocks(
-      startPos: { x: number; y: number },
+      startPos: Position,
       blockData: { blockId: number; x: number; y: number }[],
       layer: number,
     ) {
@@ -139,7 +150,7 @@ export default defineComponent({
             }
             return acc
           },
-          {} as Record<number, { blockId: number; positions: { x: number; y: number }[] }>,
+          {} as Record<number, { blockId: number; positions: Position[] }>,
         ),
       )
 
