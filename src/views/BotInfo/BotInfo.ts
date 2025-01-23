@@ -3,15 +3,9 @@ import { usePWClientStore } from '@/stores/PWClient.ts'
 import { LoginRoute } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
 import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
-import { PlayerChatPacket, PointInteger, WorldBlockPlacedPacket } from 'pw-js-api/dist/gen/world_pb'
+import { PlayerChatPacket, WorldBlockPlacedPacket } from 'pw-js-api/dist/gen/world_pb'
 import { cloneDeep } from 'lodash-es'
-import {
-  Block,
-  ComponentTypeHeader,
-  LayerType,
-  IPlayer,
-  PWGameWorldHelper,
-} from 'pw-js-world'
+import { Block, IPlayer, LayerType, PWGameWorldHelper } from 'pw-js-world'
 import { equals } from 'uint8arrays/equals'
 import { Point, SendableBlockPacket } from 'pw-js-world/dist/types'
 
@@ -47,13 +41,24 @@ export default defineComponent({
       block: Block
     }
 
-    // Bot data
-    // TODO: move it later elsewhere
-    // TODO: store this for each player independently
-    let botState: BotState = BotState.NONE
-    let selectedFromPos: Point
-    let selectedToPos: Point
-    let selectedAreaData: BlockInfo[] = []
+    type BotData = {
+      botState: BotState
+      selectedFromPos: Point
+      selectedToPos: Point
+      selectedAreaData: BlockInfo[]
+    }
+
+    function createBotData(): BotData {
+      return {
+        botState: BotState.NONE,
+        selectedFromPos: { x: 0, y: 0 },
+        selectedToPos: { x: 0, y: 0 },
+        selectedAreaData: [],
+      }
+    }
+
+    // Stores copy/paste data for each player independently
+    let playerBotData: { [playerId: number]: BotData } = {}
 
     onBeforeMount(async () => {
       getPwGameClient()
@@ -82,10 +87,19 @@ export default defineComponent({
         return
       }
 
-      if(states === undefined){
+      if (states === undefined) {
         return
       }
 
+      const playerId = data.playerId
+      if (playerId === undefined) {
+        return
+      }
+
+      if (!playerBotData[playerId]) {
+        playerBotData[playerId] = createBotData()
+      }
+      const botData = playerBotData[playerId]
       const blockPos = data.positions[0]
 
       if (data.blockId === BlockNames.COIN_GOLD) {
@@ -95,27 +109,28 @@ export default defineComponent({
         placeBlock(blockPacket)
 
         let selectedTypeText: string
-        if ([BotState.NONE, BotState.SELECTED_TO].includes(botState)) {
+        if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
           selectedTypeText = 'from'
-          botState = BotState.SELECTED_FROM
-          selectedFromPos = blockPos
+          botData.botState = BotState.SELECTED_FROM
+          botData.selectedFromPos = blockPos
         } else {
           selectedTypeText = 'to'
-          botState = BotState.SELECTED_TO
-          selectedToPos = blockPos
+          botData.botState = BotState.SELECTED_TO
+          botData.selectedToPos = blockPos
 
-          selectedAreaData = getSelectedAreaCopy(oldBlock)
+          botData.selectedAreaData = getSelectedAreaCopy(oldBlock, botData)
         }
 
         sendChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`)
       }
 
       if (data.blockId === BlockNames.COIN_BLUE) {
-        placeMultipleBlocks(blockPos, selectedAreaData)
+        placeMultipleBlocks(blockPos, botData.selectedAreaData)
       }
     }
 
-    function getSelectedAreaCopy(oldBlock: Block) {
+    function getSelectedAreaCopy(oldBlock: Block, botData: BotData) {
+      const { selectedFromPos, selectedToPos } = botData
       let data: BlockInfo[] = []
       const dirX = selectedFromPos.x <= selectedToPos.x ? 1 : -1
       const dirY = selectedFromPos.y <= selectedToPos.y ? 1 : -1
@@ -127,7 +142,7 @@ export default defineComponent({
           const dataPosY = y * dirY
 
           let foregroundBlock = getPwGameWorldHelper().getBlockAt(sourcePosX, sourcePosY, LayerType.Foreground)
-          if(sourcePosX === selectedToPos.x && sourcePosY === selectedToPos.y){
+          if (sourcePosX === selectedToPos.x && sourcePosY === selectedToPos.y) {
             foregroundBlock = oldBlock
           }
 
@@ -163,9 +178,12 @@ export default defineComponent({
           x: block.x + offsetPos.x,
           y: block.y + offsetPos.y,
         }
-        const blockPacket: SendableBlockPacket = getPwGameWorldHelper().createBlockPacket(block.block, block.layer, placePos)
+        const blockPacket: SendableBlockPacket = getPwGameWorldHelper().createBlockPacket(
+          block.block,
+          block.layer,
+          placePos,
+        )
         for (const packet of packets) {
-          // 200 arbitrary limit, preferably constant should be used
           const MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE = 200
           if (packet.positions.length >= MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE) {
             continue
