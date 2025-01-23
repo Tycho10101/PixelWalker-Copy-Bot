@@ -62,7 +62,7 @@ export default defineComponent({
     let playerBotData: { [playerId: number]: BotData } = {}
 
     onBeforeMount(async () => {
-      sendChatMessage("Copy Bot joined the world!")
+      sendChatMessage("Copy Bot joined the world! Type .help to show usage!")
       getPwGameClient()
         .addHook(getPwGameWorldHelper().receiveHook)
         .addCallback('playerChatPacket', playerChatPacketReceived)
