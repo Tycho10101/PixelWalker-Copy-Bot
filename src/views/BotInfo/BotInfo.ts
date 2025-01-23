@@ -62,6 +62,7 @@ export default defineComponent({
     let playerBotData: { [playerId: number]: BotData } = {}
 
     onBeforeMount(async () => {
+      sendChatMessage("Copy Bot joined the world!")
       getPwGameClient()
         .addHook(getPwGameWorldHelper().receiveHook)
         .addCallback('playerChatPacket', playerChatPacketReceived)
@@ -73,9 +74,15 @@ export default defineComponent({
 
       switch (args[0].toLowerCase()) {
         case '.ping':
-          getPwGameClient().send('playerChatPacket', {
-            message: 'pong',
-          })
+          sendChatMessage("pong")
+          break
+        case '.help':
+          sendChatMessage("Bot usage:")
+          sendChatMessage("Gold coin - select blocks")
+          sendChatMessage("Blue coin - paste blocks")
+          sendChatMessage("Commands:")
+          sendChatMessage(".ping - pong")
+          sendChatMessage(".help - print usage and commands")
           break
       }
     }
