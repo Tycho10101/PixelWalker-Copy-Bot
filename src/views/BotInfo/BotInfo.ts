@@ -57,6 +57,7 @@ export default defineComponent({
       }
     }
 
+    // TODO: periodically remove entries for players who left world (though it takes little data)
     // Stores copy/paste data for each player independently
     let playerBotData: { [playerId: number]: BotData } = {}
 
