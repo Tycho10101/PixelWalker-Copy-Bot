@@ -2,12 +2,18 @@ import { defineComponent, onBeforeMount, ref } from 'vue'
 import { usePWClientStore } from '@/stores/PWClient.ts'
 import { LoginRoute } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
-import { PWApiClient, PWGameClient } from 'pw-js-api'
+import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
 import { PlayerChatPacket, PointInteger, WorldBlockPlacedPacket } from 'pw-js-api/dist/gen/world_pb'
-import World from '@/services/world/world.ts'
-import BlockScheduler from '@/services/scheduler/block.ts'
-import { BlockMappings } from '@/services/BlockMappings.ts'
 import { cloneDeep } from 'lodash-es'
+import {
+  Block,
+  ComponentTypeHeader,
+  LayerType,
+  IPlayer,
+  PWGameWorldHelper,
+} from 'pw-js-world'
+import { equals } from 'uint8arrays/equals'
+import { Point, SendableBlockPacket } from 'pw-js-world/dist/types'
 
 export default defineComponent({
   setup() {
@@ -16,48 +22,44 @@ export default defineComponent({
     const PWClientStore = usePWClientStore()
     const router = useRouter()
 
+    const pwGameWorldHelper = new PWGameWorldHelper()
+
     const getPwGameClient = (): PWGameClient => {
       return PWClientStore.pwGameClient!
     }
     const getPwApiClient = (): PWApiClient => {
       return PWClientStore.pwApiClient!
     }
-    const getWorld = (): World => {
-      return PWClientStore.world!
+    const getPwGameWorldHelper = (): PWGameWorldHelper => {
+      return pwGameWorldHelper
     }
 
     enum BotState {
       NONE = 0,
       SELECTED_FROM = 1,
-      SELECTED_TO = 3,
-    }
-
-    type Position = {
-      x: number
-      y: number
+      SELECTED_TO = 2,
     }
 
     type BlockInfo = {
       x: number
       y: number
-      blockId: number
+      layer: LayerType
+      block: Block
     }
 
     // Bot data
     // TODO: move it later elsewhere
     // TODO: store this for each player independently
     let botState: BotState = BotState.NONE
-    let selectedFromPos: Position
-    let selectedToPos: Position
+    let selectedFromPos: Point
+    let selectedToPos: Point
     let selectedAreaData: BlockInfo[] = []
 
     onBeforeMount(async () => {
-      getPwGameClient().addCallback('playerChatPacket', playerChatPacketReceived)
-      getPwGameClient().addCallback('worldBlockPlacedPacket', worldBlockPlacedPacketReceived)
-
-      // A hack! We should not depend on the order that calls get registered!
-      // However, we want to see old map data in worldBlockPlacedPacketReceived
-      PWClientStore.world = new World(getPwGameClient(), new BlockScheduler(getPwGameClient()))
+      getPwGameClient()
+        .addHook(getPwGameWorldHelper().receiveHook)
+        .addCallback('playerChatPacket', playerChatPacketReceived)
+        .addCallback('worldBlockPlacedPacket', worldBlockPlacedPacketReceived)
     })
 
     function playerChatPacketReceived(data: PlayerChatPacket) {
@@ -72,17 +74,25 @@ export default defineComponent({
       }
     }
 
-    function worldBlockPlacedPacketReceived(data: WorldBlockPlacedPacket) {
+    function worldBlockPlacedPacketReceived(
+      data: WorldBlockPlacedPacket,
+      states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
+    ) {
       if (data.playerId === PWClientStore.selfPlayerId) {
+        return
+      }
+
+      if(states === undefined){
         return
       }
 
       const blockPos = data.positions[0]
 
-      if (data.blockId === BlockMappings['coin_gold']) {
-        const oldBlockId = getWorld().structure.foreground[blockPos.x][blockPos.y].id
+      if (data.blockId === BlockNames.COIN_GOLD) {
+        const oldBlock = states.oldBlocks[0]
+        const blockPacket = getPwGameWorldHelper().createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
 
-        placeBlock(oldBlockId, 1, { x: blockPos.x, y: blockPos.y })
+        placeBlock(blockPacket)
 
         let selectedTypeText: string
         if ([BotState.NONE, BotState.SELECTED_TO].includes(botState)) {
@@ -94,19 +104,19 @@ export default defineComponent({
           botState = BotState.SELECTED_TO
           selectedToPos = blockPos
 
-          selectedAreaData = getSelectedAreaCopy()
+          selectedAreaData = getSelectedAreaCopy(oldBlock)
         }
 
         sendChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`)
       }
 
-      if (data.blockId === BlockMappings['coin_blue']) {
-        placeMultipleBlocks(blockPos, selectedAreaData, 1)
+      if (data.blockId === BlockNames.COIN_BLUE) {
+        placeMultipleBlocks(blockPos, selectedAreaData)
       }
     }
 
-    function getSelectedAreaCopy() {
-      let data = []
+    function getSelectedAreaCopy(oldBlock: Block) {
+      let data: BlockInfo[] = []
       const dirX = selectedFromPos.x <= selectedToPos.x ? 1 : -1
       const dirY = selectedFromPos.y <= selectedToPos.y ? 1 : -1
       for (let x = 0; x <= Math.abs(selectedFromPos.x - selectedToPos.x); x++) {
@@ -115,52 +125,71 @@ export default defineComponent({
           const sourcePosY = selectedFromPos.y + y * dirY
           const dataPosX = x * dirX
           const dataPosY = y * dirY
-          const copiedBlockId = getWorld().structure.foreground[sourcePosX][sourcePosY].id
-          data.push({ blockId: copiedBlockId, x: dataPosX, y: dataPosY })
+
+          let foregroundBlock = getPwGameWorldHelper().getBlockAt(sourcePosX, sourcePosY, LayerType.Foreground)
+          if(sourcePosX === selectedToPos.x && sourcePosY === selectedToPos.y){
+            foregroundBlock = oldBlock
+          }
+
+          data.push({
+            block: foregroundBlock,
+            x: dataPosX,
+            y: dataPosY,
+            layer: LayerType.Foreground,
+          })
+          data.push({
+            block: getPwGameWorldHelper().getBlockAt(sourcePosX, sourcePosY, LayerType.Background),
+            x: dataPosX,
+            y: dataPosY,
+            layer: LayerType.Background,
+          })
         }
       }
       return data
     }
 
-    // TODO: fix this not working for more complex objects, like switches
-    function placeBlock(blockId: number, layer: number, position: Position) {
-      getPwGameClient().send('worldBlockPlacedPacket', {
-        blockId: blockId,
-        layer: layer,
-        positions: [position as PointInteger],
-        isFillOperation: false,
-      })
+    function placeBlock(blockPacket: SendableBlockPacket) {
+      getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
     }
 
-    function placeMultipleBlocks(
-      startPos: Position,
-      blockData: { blockId: number; x: number; y: number }[],
-      layer: number,
-    ) {
-      let data = cloneDeep(blockData)
+    function placeMultipleBlocks(offsetPos: Point, blockData: BlockInfo[]) {
+      let blocks = cloneDeep(blockData)
 
-      const mergedData = Object.values(
-        data.reduce(
-          (acc, { blockId, x, y }) => {
-            const position = { x: x + startPos.x, y: y + startPos.y }
-            if (!acc[blockId]) {
-              acc[blockId] = { blockId, positions: [position] }
-            } else {
-              acc[blockId].positions.push(position)
-            }
-            return acc
-          },
-          {} as Record<number, { blockId: number; positions: Position[] }>,
-        ),
-      )
+      // TODO: move this to pw-js-world
+      const packets: SendableBlockPacket[] = []
+      for (const block of blocks) {
+        let found = false
+        const placePos = {
+          x: block.x + offsetPos.x,
+          y: block.y + offsetPos.y,
+        }
+        const blockPacket: SendableBlockPacket = getPwGameWorldHelper().createBlockPacket(block.block, block.layer, placePos)
+        for (const packet of packets) {
+          // 200 arbitrary limit, preferably constant should be used
+          const MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE = 200
+          if (packet.positions.length >= MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE) {
+            continue
+          }
+          if (packet.blockId !== block.block.bId) {
+            continue
+          }
+          if (packet.layer !== block.layer) {
+            continue
+          }
+          if (!equals(packet.extraFields!, blockPacket.extraFields!)) {
+            continue
+          }
+          // TODO: filter identical positions
+          packet.positions.push(placePos)
+          found = true
+        }
+        if (!found) {
+          packets.push(blockPacket)
+        }
+      }
 
-      for (const block of mergedData) {
-        getPwGameClient().send('worldBlockPlacedPacket', {
-          blockId: block.blockId,
-          layer: layer,
-          positions: block.positions,
-          isFillOperation: false,
-        })
+      for (const packet of packets) {
+        placeBlock(packet)
       }
     }
 
