@@ -18,7 +18,7 @@
     "lodash-es": "^4.17.21",
     "pinia": "^2.3.0",
     "pw-js-api": "github:Piratux/pw-js-api#issue-1",
-    "pw-js-world": "github:Piratux/pw-js-world#issue-9",
+    "pw-js-world": "github:Piratux/pw-js-world",
     "uint8arrays": "^5.1.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
