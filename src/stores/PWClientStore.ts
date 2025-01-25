@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { PWGameWorldHelper } from 'pw-js-world/esm'
+import { PWGameWorldHelper } from 'pw-js-world'
 
 export const usePWClientStore = defineStore('PWClientStore', () => {
   let pwGameClient: PWGameClient | undefined

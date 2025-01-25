@@ -1,5 +1,5 @@
-import { Block } from 'pw-js-world/esm'
-import { LayerType } from 'pw-js-world/cm/Constants'
+import { Block } from 'pw-js-world'
+import { LayerType } from 'pw-js-world'
 
 export type BlockInfo = {
   x: number

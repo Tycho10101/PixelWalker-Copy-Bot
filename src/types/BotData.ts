@@ -1,5 +1,5 @@
 import { BotState } from '@/enums/BotState.ts'
-import { Point } from 'pw-js-world/esm'
+import { Point } from 'pw-js-world'
 import { BlockInfo } from '@/types/BlockInfo.ts'
 
 export type BotData = {
