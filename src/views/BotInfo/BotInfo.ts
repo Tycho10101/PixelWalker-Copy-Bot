@@ -5,9 +5,10 @@ import { useRouter } from 'vue-router'
 import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
 import { PlayerChatPacket, WorldBlockPlacedPacket } from 'pw-js-api/dist/gen/world_pb'
 import { cloneDeep } from 'lodash-es'
-import { Block, IPlayer, LayerType, PWGameWorldHelper } from 'pw-js-world'
+import { Block, IPlayer, PWGameWorldHelper } from 'pw-js-world'
 import { equals } from 'uint8arrays/equals'
 import { Point, SendableBlockPacket } from 'pw-js-world/dist/types'
+import {Constants} from 'pw-js-world'
 
 export default defineComponent({
   setup() {
@@ -27,6 +28,8 @@ export default defineComponent({
     const getPwGameWorldHelper = (): PWGameWorldHelper => {
       return pwGameWorldHelper
     }
+
+    const LayerType = Constants.LayerType
 
     enum BotState {
       NONE = 0,
@@ -62,6 +65,7 @@ export default defineComponent({
     let playerBotData: { [playerId: number]: BotData } = {}
 
     onBeforeMount(async () => {
+      // TODO: move this to on player init instead
       sendChatMessage("Copy Bot joined the world! Type .help to show usage!")
       getPwGameClient()
         .addHook(getPwGameWorldHelper().receiveHook)
