@@ -1,7 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 import * as Routes from './routes'
-import { usePWClientStore } from '@/stores/PWClient.ts'
+import { usePWClientStore } from '@/stores/PWClientStore.ts'
 
 const buildRouter = () => {
   const routes: RouteRecordRaw[] = [...Object.values(Routes)].sort((a, b): number => {

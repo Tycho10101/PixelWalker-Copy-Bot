@@ -1,12 +1,13 @@
-import { computed, defineComponent, onBeforeMount, ref } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
-import { usePWClientStore } from '@/stores/PWClient.ts'
+import { usePWClientStore } from '@/stores/PWClientStore.ts'
 import { useRouter } from 'vue-router'
 import { MessageService } from '@/services/MessageService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/general.ts'
 import { BotInfoRoute } from '@/router/routes.ts'
+import { registerCallbacks } from '@/services/PacketHandler.ts'
 
 export default defineComponent({
   setup() {
@@ -21,14 +22,13 @@ export default defineComponent({
 
     const showSetDefaultWorldIdButton = computed(() => import.meta.env.VITE_SHOW_SET_DEFAULT_WORLD_ID_BUTTON === 'TRUE')
 
-    const getPwGameClient = (): PWGameClient => {
+    function getPwGameClient(): PWGameClient {
       return PWClientStore.pwGameClient!
     }
-    const getPwApiClient = (): PWApiClient => {
+
+    function getPwApiClient(): PWApiClient {
       return PWClientStore.pwApiClient!
     }
-
-    onBeforeMount(async () => {})
 
     async function authenticate(): Promise<boolean> {
       const authenticationResult = await getPwApiClient().authenticate()
@@ -48,11 +48,8 @@ export default defineComponent({
 
     async function joinWorld(): Promise<boolean> {
       try {
-        PWClientStore.pwGameClient = await getPwApiClient().joinWorld(worldId.value, {
-          gameSettings: {
-            handlePackets: ['PING'],
-          },
-        })
+        await getPwGameClient().joinWorld(worldId.value)
+
         return true
       } catch (e) {
         MessageService.error('Failed to join world. ' + e.message)
@@ -71,17 +68,13 @@ export default defineComponent({
         return
       }
 
+      PWClientStore.pwGameClient = new PWGameClient(getPwApiClient())
+
+      registerCallbacks()
+
       if (!(await joinWorld())) {
         return
       }
-
-      getPwGameClient().addCallback('debug', console.log)
-
-      getPwGameClient().addCallback('playerInitPacket', (data) => {
-        PWClientStore.selfPlayerId = data.playerProperties?.playerId
-
-        getPwGameClient()?.send('playerInitReceived')
-      })
 
       await router.push({ name: BotInfoRoute.name })
     }
