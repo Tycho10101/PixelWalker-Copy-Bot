@@ -35,28 +35,35 @@ export function registerCallbacks() {
 
 function playerChatPacketReceived(data: PlayerChatPacket) {
   const args = data.message.split(' ')
+  const playerId = data.playerId
 
   switch (args[0].toLowerCase()) {
     case '.ping':
-      sendChatMessage('pong')
+      sendPrivateChatMessage('pong', playerId)
       break
     case '.help':
-      sendChatMessage('Bot usage:')
-      sendChatMessage('Gold coin - select blocks')
-      sendChatMessage('Blue coin - paste blocks')
-      sendChatMessage('Commands:')
-      sendChatMessage('.ping - pong')
-      sendChatMessage('.help - print usage and commands')
+      sendPrivateChatMessage('Bot usage:', playerId)
+      sendPrivateChatMessage('Gold coin - select blocks', playerId)
+      sendPrivateChatMessage('Blue coin - paste blocks', playerId)
+      sendPrivateChatMessage('Commands:', playerId)
+      sendPrivateChatMessage('.ping - pong', playerId)
+      sendPrivateChatMessage('.help - print usage and commands', playerId)
       break
   }
 }
 
 function playerInitPacketReceived(_data: PlayerInitPacket) {
   getPwGameClient().send('playerInitReceived')
-  sendChatMessage('Copy Bot joined the world! Type .help to show usage!')
+  sendGlobalChatMessage('Copy Bot joined the world! Type .help to show usage!')
 }
 
-function sendChatMessage(message: string) {
+function sendPrivateChatMessage(message: string, playerId: number) {
+  getPwGameClient().send('playerChatPacket', {
+    message: `/pm #${playerId} [BOT] ${message}`,
+  })
+}
+
+function sendGlobalChatMessage(message: string) {
   getPwGameClient().send('playerChatPacket', {
     message: `[BOT] ${message}`,
   })
@@ -106,7 +113,7 @@ function worldBlockPlacedPacketReceived(
       botData.selectedBlocks = getSelectedAreaCopy(oldBlock, botData)
     }
 
-    sendChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`)
+    sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
   }
 
   if (data.blockId === BlockNames.COIN_BLUE) {
