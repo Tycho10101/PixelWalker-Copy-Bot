@@ -3,7 +3,6 @@ import { usePWClientStore } from '@/stores/PWClientStore.ts'
 import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
 import { Block, Constants, IPlayer, Point, PWGameWorldHelper, SendableBlockPacket } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
-import { equals } from 'uint8arrays/equals'
 import { BotData, createBotData, PlayerBotData } from '@/types/BotData.ts'
 import { useBotStore } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
@@ -12,17 +11,20 @@ import { BlockInfo } from '@/types/BlockInfo.ts'
 function getPwGameClient(): PWGameClient {
   return usePWClientStore().pwGameClient!
 }
+
 function getPwApiClient(): PWApiClient {
   return usePWClientStore().pwApiClient!
 }
+
 function getPwGameWorldHelper(): PWGameWorldHelper {
   return usePWClientStore().pwGameWorldHelper
 }
+
 function getPlayerBotData(): PlayerBotData {
   return useBotStore().playerBotData
 }
 
-export function registerCallbacks(){
+export function registerCallbacks() {
   getPwGameClient()
     .addHook(getPwGameWorldHelper().receiveHook)
     .addCallback('debug', console.log)
@@ -64,7 +66,6 @@ function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
-
   const LayerType = Constants.LayerType
 
   if (data.playerId === getPwGameWorldHelper().botPlayerId) {
@@ -102,15 +103,25 @@ function worldBlockPlacedPacketReceived(
       botData.botState = BotState.SELECTED_TO
       botData.selectedToPos = blockPos
 
-      botData.selectedAreaData = getSelectedAreaCopy(oldBlock, botData)
+      botData.selectedBlocks = getSelectedAreaCopy(oldBlock, botData)
     }
 
     sendChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`)
   }
 
   if (data.blockId === BlockNames.COIN_BLUE) {
-    placeMultipleBlocks(blockPos, botData.selectedAreaData)
+    const offsetBlocks = applyPosOffsetForBlocks(blockPos, botData.selectedBlocks)
+    placeMultipleBlocks(offsetBlocks)
   }
+}
+
+function applyPosOffsetForBlocks(offsetPos: Point, blockData: BlockInfo[]) {
+  const blocks = cloneDeep(blockData)
+  blocks.forEach((block) => {
+    block.x += offsetPos.x
+    block.y += offsetPos.y
+  })
+  return blocks
 }
 
 function getSelectedAreaCopy(oldBlock: Block, botData: BotData) {
@@ -153,46 +164,11 @@ function placeBlock(blockPacket: SendableBlockPacket) {
   getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
 }
 
-function placeMultipleBlocks(offsetPos: Point, blockData: BlockInfo[]) {
-  let blocks = cloneDeep(blockData)
+function placeMultipleBlocks(blockData: BlockInfo[]) {
+  const blockDataTransformed = blockData.map((value) => {
+    return { block: value.block, layer: value.layer, pos: { x: value.x, y: value.y } }
+  })
+  const packets = getPwGameWorldHelper().createBlockPackets(blockDataTransformed)
 
-  // TODO: move this to pw-js-world
-  const packets: SendableBlockPacket[] = []
-  for (const block of blocks) {
-    let found = false
-    const placePos = {
-      x: block.x + offsetPos.x,
-      y: block.y + offsetPos.y,
-    }
-    const blockPacket: SendableBlockPacket = getPwGameWorldHelper().createBlockPacket(
-      block.block,
-      block.layer,
-      placePos,
-    )
-    for (const packet of packets) {
-      const MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE = 200
-      if (packet.positions.length >= MAX_WORLD_BLOCK_PLACED_PACKET_POSITION_SIZE) {
-        continue
-      }
-      if (packet.blockId !== block.block.bId) {
-        continue
-      }
-      if (packet.layer !== block.layer) {
-        continue
-      }
-      if (!equals(packet.extraFields!, blockPacket.extraFields!)) {
-        continue
-      }
-      // TODO: filter identical positions
-      packet.positions.push(placePos)
-      found = true
-    }
-    if (!found) {
-      packets.push(blockPacket)
-    }
-  }
-
-  for (const packet of packets) {
-    placeBlock(packet)
-  }
+  packets.forEach((packet) => placeBlock(packet))
 }

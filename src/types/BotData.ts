@@ -6,7 +6,7 @@ export type BotData = {
   botState: BotState
   selectedFromPos: Point
   selectedToPos: Point
-  selectedAreaData: BlockInfo[]
+  selectedBlocks: BlockInfo[]
 }
 
 export type PlayerBotData = {
@@ -18,6 +18,6 @@ export function createBotData(): BotData {
     botState: BotState.NONE,
     selectedFromPos: { x: 0, y: 0 },
     selectedToPos: { x: 0, y: 0 },
-    selectedAreaData: [],
+    selectedBlocks: [],
   }
 }
