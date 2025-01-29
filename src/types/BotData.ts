@@ -13,6 +13,7 @@ export type BotData = {
   repeatEnabled: boolean
   repeatX: number
   repeatY: number
+  smartRepeatEnabled: boolean
 }
 
 export type PlayerBotData = {
@@ -31,5 +32,6 @@ export function createBotData(): BotData {
     repeatEnabled: false,
     repeatX: 1,
     repeatY: 1,
+    smartRepeatEnabled: false,
   }
 }
