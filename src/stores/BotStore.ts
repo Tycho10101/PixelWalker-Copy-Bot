@@ -9,3 +9,7 @@ export const useBotStore = defineStore('BotStore', () => {
     playerBotData,
   }
 })
+
+export function getPlayerBotData(): PlayerBotData {
+  return useBotStore().playerBotData
+}

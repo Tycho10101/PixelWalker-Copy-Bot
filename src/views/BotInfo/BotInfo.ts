@@ -1,9 +1,7 @@
 import { defineComponent, ref } from 'vue'
-import { usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { LoginRoute } from '@/router/routes.ts'
 import { useRouter } from 'vue-router'
-import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { PWGameWorldHelper } from 'pw-js-world'
 
 export default defineComponent({
   setup() {
@@ -11,18 +9,6 @@ export default defineComponent({
 
     const PWClientStore = usePWClientStore()
     const router = useRouter()
-
-    function getPwGameClient(): PWGameClient {
-      return usePWClientStore().pwGameClient!
-    }
-
-    function getPwApiClient(): PWApiClient {
-      return usePWClientStore().pwApiClient!
-    }
-
-    function getPwGameWorldHelper(): PWGameWorldHelper {
-      return usePWClientStore().pwGameWorldHelper
-    }
 
     async function onDisconnectButtonClick() {
       getPwGameClient().disconnect(false)

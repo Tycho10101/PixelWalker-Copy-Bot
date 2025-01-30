@@ -4,8 +4,8 @@ import {
   PlayerJoinedPacket,
   WorldBlockPlacedPacket,
 } from 'pw-js-api/esm/gen/world_pb'
-import { usePWClientStore } from '@/stores/PWClientStore.ts'
-import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
+import { getPwGameClient, getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { BlockNames } from 'pw-js-api'
 import {
   Block,
   BlockArgsHeadings,
@@ -15,32 +15,15 @@ import {
   createBlockPackets,
   IPlayer,
   Point,
-  PWGameWorldHelper,
   SendableBlockPacket,
 } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
-import { createBotData, PlayerBotData } from '@/types/BotData.ts'
-import { useBotStore } from '@/stores/BotStore.ts'
+import { createBotData } from '@/types/BotData.ts'
+import { getPlayerBotData } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
-
-function getPwGameClient(): PWGameClient {
-  return usePWClientStore().pwGameClient!
-}
-
-function getPwApiClient(): PWApiClient {
-  return usePWClientStore().pwApiClient!
-}
-
-function getPwGameWorldHelper(): PWGameWorldHelper {
-  return usePWClientStore().pwGameWorldHelper
-}
-
-function getPlayerBotData(): PlayerBotData {
-  return useBotStore().playerBotData
-}
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -268,8 +251,8 @@ function worldBlockPlacedPacketReceived(
       const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
       const nextBlocksX = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
 
-      const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0,botData.selectionSize.y * repeatDir.y))
-      const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0,botData.selectionSize.y * repeatDir.y))
+      const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, botData.selectionSize.y * repeatDir.y))
+      const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, botData.selectionSize.y * repeatDir.y))
       const nextBlocksY = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
 
       for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {

@@ -2,7 +2,7 @@ import { computed, defineComponent, ref } from 'vue'
 
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
-import { usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { useRouter } from 'vue-router'
 import { MessageService } from '@/services/MessageService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/general.ts'
@@ -21,14 +21,6 @@ export default defineComponent({
     const PWClientStore = usePWClientStore()
 
     const showSetDefaultWorldIdButton = computed(() => import.meta.env.VITE_SHOW_SET_DEFAULT_WORLD_ID_BUTTON === 'TRUE')
-
-    function getPwGameClient(): PWGameClient {
-      return PWClientStore.pwGameClient!
-    }
-
-    function getPwApiClient(): PWApiClient {
-      return PWClientStore.pwApiClient!
-    }
 
     async function authenticate(): Promise<boolean> {
       const authenticationResult = await getPwApiClient().authenticate()
