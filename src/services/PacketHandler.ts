@@ -1,4 +1,9 @@
-import { PlayerChatPacket, PlayerInitPacket, WorldBlockPlacedPacket } from 'pw-js-api/dist/gen/world_pb'
+import {
+  PlayerChatPacket,
+  PlayerInitPacket,
+  PlayerJoinedPacket,
+  WorldBlockPlacedPacket,
+} from 'pw-js-api/esm/gen/world_pb'
 import { usePWClientStore } from '@/stores/PWClientStore.ts'
 import { BlockNames, PWApiClient, PWGameClient } from 'pw-js-api'
 import {
@@ -18,7 +23,6 @@ import { createBotData, PlayerBotData } from '@/types/BotData.ts'
 import { useBotStore } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
 import { BlockInfo } from '@/types/BlockInfo.ts'
-import { PlayerJoinedPacket } from 'pw-js-api/cm/gen/world_pb'
 import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 
 function getPwGameClient(): PWGameClient {
