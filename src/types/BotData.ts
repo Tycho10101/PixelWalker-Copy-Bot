@@ -1,18 +1,18 @@
 import { BotState } from '@/enums/BotState.ts'
 import { Point } from 'pw-js-world'
-import { BlockInfo } from '@/types/BlockInfo.ts'
+import { WorldBlock } from '@/types/WorldBlock.ts'
+import { vec2 } from '@basementuniverse/vec'
 
 export type BotData = {
   botState: BotState
   selectedFromPos: Point
   selectedToPos: Point
-  selectedBlocks: BlockInfo[]
+  selectedBlocks: WorldBlock[]
   selectionSize: Point
   selectionLocalTopLeftPos: Point
   selectionLocalBottomRightPos: Point
   repeatEnabled: boolean
-  repeatX: number
-  repeatY: number
+  repeatVec: Point
   smartRepeatEnabled: boolean
 }
 
@@ -23,15 +23,14 @@ export type PlayerBotData = {
 export function createBotData(): BotData {
   return {
     botState: BotState.NONE,
-    selectedFromPos: { x: 0, y: 0 },
-    selectedToPos: { x: 0, y: 0 },
+    selectedFromPos: vec2(0,0),
+    selectedToPos: vec2(0,0),
     selectedBlocks: [],
-    selectionSize: {x: 1, y: 1},
-    selectionLocalTopLeftPos: { x: 0, y: 0 },
-    selectionLocalBottomRightPos: { x: 1, y: 1 },
+    selectionSize: vec2(1,1),
+    selectionLocalTopLeftPos: vec2(0,0),
+    selectionLocalBottomRightPos: vec2(1,1),
     repeatEnabled: false,
-    repeatX: 1,
-    repeatY: 1,
+    repeatVec: vec2(1,1),
     smartRepeatEnabled: false,
   }
 }

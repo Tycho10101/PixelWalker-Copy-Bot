@@ -22,8 +22,9 @@ import { cloneDeep } from 'lodash-es'
 import { createBotData, PlayerBotData } from '@/types/BotData.ts'
 import { useBotStore } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
-import { BlockInfo } from '@/types/BlockInfo.ts'
+import { WorldBlock } from '@/types/WorldBlock.ts'
 import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
+import { vec2 } from '@basementuniverse/vec'
 
 function getPwGameClient(): PWGameClient {
   return usePWClientStore().pwGameClient!
@@ -136,8 +137,7 @@ function pasteCommandReceived(args: string[], playerId: number, smartPaste: bool
   }
 
   const botData = getPlayerBotData()[playerId]
-  botData.repeatX = repeatX
-  botData.repeatY = repeatY
+  botData.repeatVec = vec2(repeatX, repeatY)
   botData.repeatEnabled = true
   botData.smartRepeatEnabled = smartPaste
   sendPrivateChatMessage(`Next paste will be repeated ${repeatX}x${repeatY} times`, playerId)
@@ -148,10 +148,10 @@ function playerInitPacketReceived(_data: PlayerInitPacket) {
 }
 
 function applySmartTransformForBlocks(
-  pastedBlocks: BlockInfo[],
-  pastePosBlocks: BlockInfo[],
-  nextBlocksX: BlockInfo[],
-  nextBlocksY: BlockInfo[],
+  pastedBlocks: WorldBlock[],
+  pastePosBlocks: WorldBlock[],
+  nextBlocksX: WorldBlock[],
+  nextBlocksY: WorldBlock[],
   repetitionX: number,
   repetitionY: number,
 ) {
@@ -220,10 +220,10 @@ function worldBlockPlacedPacketReceived(
       selectedTypeText = 'to'
       botData.botState = BotState.SELECTED_TO
       botData.selectedToPos = blockPos
-      botData.selectionSize = {
-        x: Math.abs(botData.selectedToPos.x - botData.selectedFromPos.x) + 1,
-        y: Math.abs(botData.selectedToPos.y - botData.selectedFromPos.y) + 1,
-      }
+      botData.selectionSize = vec2(
+        Math.abs(botData.selectedToPos.x - botData.selectedFromPos.x) + 1,
+        Math.abs(botData.selectedToPos.y - botData.selectedFromPos.y) + 1,
+      )
 
       const dirX = botData.selectedFromPos.x <= botData.selectedToPos.x ? 1 : -1
       const dirY = botData.selectedFromPos.y <= botData.selectedToPos.y ? 1 : -1
@@ -254,51 +254,34 @@ function worldBlockPlacedPacketReceived(
     placeBlock(blockPacket)
     if (botData.repeatEnabled) {
       botData.repeatEnabled = false
-      let allBlocks: BlockInfo[] = []
+      let allBlocks: WorldBlock[] = []
       const mapWidth = getPwGameWorldHelper().width
       const mapHeight = getPwGameWorldHelper().height
 
-      const repeatDirectionX = botData.repeatX < 0 ? -1 : 1
-      const repeatDirectionY = botData.repeatY < 0 ? -1 : 1
+      const repeatDir = vec2(botData.repeatVec.x < 0 ? -1 : 1, botData.repeatVec.y < 0 ? -1 : 1)
 
-      const pastePosBlocksFromPos = {
-        x: blockPos.x + botData.selectionLocalTopLeftPos.x,
-        y: blockPos.y + botData.selectionLocalTopLeftPos.y,
-      }
-      const pastePosBlocksToPos = {
-        x: blockPos.x + botData.selectionLocalBottomRightPos.x,
-        y: blockPos.y + botData.selectionLocalBottomRightPos.y,
-      }
+      const pastePosBlocksFromPos = vec2.add(blockPos, botData.selectionLocalTopLeftPos)
+      const pastePosBlocksToPos = vec2.add(blockPos, botData.selectionLocalBottomRightPos)
       const pastePosBlocks = getSelectedAreaCopy(oldBlock, blockPos, pastePosBlocksFromPos, pastePosBlocksToPos)
-      const nextBlocksXFromPos = {
-        x: pastePosBlocksFromPos.x + botData.selectionSize.x * repeatDirectionX,
-        y: pastePosBlocksFromPos.y,
-      }
-      const nextBlocksXToPos = {
-        x: pastePosBlocksToPos.x + botData.selectionSize.x * repeatDirectionX,
-        y: pastePosBlocksToPos.y,
-      }
+
+      const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
+      const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
       const nextBlocksX = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
-      const nextBlocksYFromPos = {
-        x: pastePosBlocksFromPos.x,
-        y: pastePosBlocksFromPos.y + botData.selectionSize.y * repeatDirectionY,
-      }
-      const nextBlocksYToPos = {
-        x: pastePosBlocksToPos.x,
-        y: pastePosBlocksToPos.y + botData.selectionSize.y * repeatDirectionY,
-      }
+
+      const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0,botData.selectionSize.y * repeatDir.y))
+      const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0,botData.selectionSize.y * repeatDir.y))
       const nextBlocksY = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
 
-      for (let x = 0; x < Math.abs(botData.repeatX); x++) {
-        const offsetPosX = pastePosBlocksFromPos.x + x * botData.selectionSize.x * (botData.repeatX < 0 ? -1 : 1)
+      for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
+        const offsetPosX = pastePosBlocksFromPos.x + x * botData.selectionSize.x * repeatDir.x
         if (
           offsetPosX + botData.selectionLocalTopLeftPos.x >= mapWidth ||
           offsetPosX + botData.selectionLocalBottomRightPos.x < 0
         ) {
           break
         }
-        for (let y = 0; y < Math.abs(botData.repeatY); y++) {
-          const offsetPosY = pastePosBlocksFromPos.y + y * botData.selectionSize.y * (botData.repeatY < 0 ? -1 : 1)
+        for (let y = 0; y < Math.abs(botData.repeatVec.y); y++) {
+          const offsetPosY = pastePosBlocksFromPos.y + y * botData.selectionSize.y * repeatDir.y
           if (
             offsetPosY + botData.selectionLocalTopLeftPos.y >= mapHeight ||
             offsetPosY + botData.selectionLocalBottomRightPos.y < 0
@@ -306,10 +289,7 @@ function worldBlockPlacedPacketReceived(
             break
           }
 
-          const offsetPos: Point = {
-            x: offsetPosX,
-            y: offsetPosY,
-          }
+          const offsetPos = vec2(offsetPosX, offsetPosY)
 
           let finalBlocks = applyPosOffsetForBlocks(offsetPos, botData.selectedBlocks)
           if (botData.smartRepeatEnabled) {
@@ -326,18 +306,17 @@ function worldBlockPlacedPacketReceived(
   }
 }
 
-function applyPosOffsetForBlocks(offsetPos: Point, blockData: BlockInfo[]) {
-  const blocks = cloneDeep(blockData)
-  blocks.forEach((block) => {
-    block.x += offsetPos.x
-    block.y += offsetPos.y
+function applyPosOffsetForBlocks(offsetPos: Point, worldBlocks: WorldBlock[]) {
+  return worldBlocks.map((worldBlock) => {
+    const clonedBlock = cloneDeep(worldBlock)
+    clonedBlock.pos = vec2.add(clonedBlock.pos, offsetPos)
+    return clonedBlock
   })
-  return blocks
 }
 
-function getBlockAt(x: number, y: number, layer: number): Block {
+function getBlockAt(pos: Point, layer: number): Block {
   try {
-    return getPwGameWorldHelper().getBlockAt(x, y, layer)
+    return getPwGameWorldHelper().getBlockAt(pos.x, pos.y, layer)
   } catch (e) {
     return new Block(0)
   }
@@ -354,27 +333,24 @@ function getSelectedAreaCopy(oldBlock: Block, oldBlockPos: Point, fromPos: Point
   }
   // TODO: replace this with exported LayerType enum
   const LayerType = Constants.LayerType
-  let data: BlockInfo[] = []
+  let data: WorldBlock[] = []
   for (let x = 0; x <= toPos.x - fromPos.x; x++) {
     for (let y = 0; y <= toPos.y - fromPos.y; y++) {
-      const sourcePosX = fromPos.x + x
-      const sourcePosY = fromPos.y + y
+      const sourcePos = vec2.add(fromPos, vec2(x, y))
 
-      let foregroundBlock = getBlockAt(sourcePosX, sourcePosY, LayerType.Foreground)
-      if (sourcePosX === oldBlockPos.x && sourcePosY === oldBlockPos.y) {
+      let foregroundBlock = getBlockAt(sourcePos, LayerType.Foreground)
+      if (vec2.eq(sourcePos, oldBlockPos)) {
         foregroundBlock = oldBlock
       }
 
       data.push({
         block: foregroundBlock,
-        x: x,
-        y: y,
+        pos: vec2(x, y),
         layer: LayerType.Foreground,
       })
       data.push({
-        block: getBlockAt(sourcePosX, sourcePosY, LayerType.Background),
-        x: x,
-        y: y,
+        block: getBlockAt(sourcePos, LayerType.Background),
+        pos: vec2(x, y),
         layer: LayerType.Background,
       })
     }
@@ -386,11 +362,8 @@ function placeBlock(blockPacket: SendableBlockPacket) {
   getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
 }
 
-function placeMultipleBlocks(blockData: BlockInfo[]) {
-  const blockDataTransformed = blockData.map((value) => {
-    return { block: value.block, layer: value.layer, pos: { x: value.x, y: value.y } }
-  })
-  const packets = createBlockPackets(blockDataTransformed)
+function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
+  const packets = createBlockPackets(worldBlocks)
 
   packets.forEach((packet) => placeBlock(packet))
 }
