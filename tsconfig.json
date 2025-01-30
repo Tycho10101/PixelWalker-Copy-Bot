@@ -39,7 +39,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "vite-env.d.ts"
   ],
   "references": [
     {
