@@ -6,6 +6,8 @@ import {
   BlockArgsHeadings,
   ComponentTypeHeader,
   Constants,
+  createBlockPacket,
+  createBlockPackets,
   IPlayer,
   Point,
   PWGameWorldHelper,
@@ -201,7 +203,7 @@ function worldBlockPlacedPacketReceived(
   const blockPos = data.positions[0]
 
   const oldBlock = states.oldBlocks[0]
-  const blockPacket = getPwGameWorldHelper().createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
+  const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
   if (data.blockId === BlockNames.COIN_GOLD) {
     placeBlock(blockPacket)
 
@@ -384,7 +386,7 @@ function placeMultipleBlocks(blockData: BlockInfo[]) {
   const blockDataTransformed = blockData.map((value) => {
     return { block: value.block, layer: value.layer, pos: { x: value.x, y: value.y } }
   })
-  const packets = getPwGameWorldHelper().createBlockPackets(blockDataTransformed)
+  const packets = createBlockPackets(blockDataTransformed)
 
   packets.forEach((packet) => placeBlock(packet))
 }
