@@ -12,18 +12,19 @@ import {
   ComponentTypeHeader,
   Constants,
   createBlockPacket,
-  createBlockPackets,
   IPlayer,
   Point,
   SendableBlockPacket,
 } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
-import { createBotData } from '@/types/BotData.ts'
+import { BotData, createBotData } from '@/types/BotData.ts'
 import { getPlayerBotData } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
+import { getBlockAt, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
+import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -60,6 +61,12 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
     case '.smartpaste':
       pasteCommandReceived(args, playerId, true)
       break
+    case '.undo':
+      undoCommandReceived(args, playerId)
+      break
+    case '.redo':
+      redoCommandReceived(args, playerId)
+      break
   }
 }
 
@@ -70,15 +77,16 @@ function helpCommandReceived(args: string[], playerId: number) {
     '.paste x_times y_times - repeat next paste specified amount of times in x and y direction.'
   const HELP_MESSAGE_SMARTPASTE =
     '.smartpaste - same as .paste, but increments special block arguments, when using repeated paste.'
+  const HELP_MESSAGE_UNDO =
+    '.undo - undos laste paste performed by bot'
+  const HELP_MESSAGE_REDO =
+    '.redo - redos last undone paste performed by bot'
   if (args.length == 1) {
     sendPrivateChatMessage('Bot usage:', playerId)
     sendPrivateChatMessage('Gold coin - select blocks', playerId)
     sendPrivateChatMessage('Blue coin - paste blocks', playerId)
-    sendPrivateChatMessage('Commands:', playerId)
-    sendPrivateChatMessage('.ping - pong', playerId)
-    sendPrivateChatMessage('.help [command] - print help info', playerId)
-    sendPrivateChatMessage(HELP_MESSAGE_PASTE, playerId)
-    sendPrivateChatMessage(HELP_MESSAGE_SMARTPASTE, playerId)
+    sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo', playerId)
+    sendPrivateChatMessage('See more info about each command via .help [command]', playerId)
     return
   }
   if (args[1] === 'ping') {
@@ -109,6 +117,26 @@ function helpCommandReceived(args: string[], playerId: number) {
     sendPrivateChatMessage(`As result, you should see purple switches with ids [1,2,3,4,5] placed in a row.`, playerId)
     return
   }
+  if (args[1] === 'undo') {
+    sendPrivateChatMessage(HELP_MESSAGE_UNDO, playerId)
+    sendPrivateChatMessage(`Example usage: .undo`, playerId)
+    return
+  }
+  if (args[1] === 'redo') {
+    sendPrivateChatMessage(HELP_MESSAGE_REDO, playerId)
+    sendPrivateChatMessage(`Example usage: .redo`, playerId)
+    return
+  }
+}
+
+function undoCommandReceived(_args: string[], playerId: number) {
+  const botData = getPlayerBotData()[playerId]
+  performUndo(botData, playerId)
+}
+
+function redoCommandReceived(_args: string[], playerId: number) {
+  const botData = getPlayerBotData()[playerId]
+  performRedo(botData, playerId)
 }
 
 function pasteCommandReceived(args: string[], playerId: number, smartPaste: boolean) {
@@ -164,6 +192,63 @@ function applySmartTransformForBlocks(
   })
 }
 
+function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
+  console.log(new Block(0))
+  placeBlockPacket(blockPacket)
+  let allBlocks: WorldBlock[] = []
+  if (botData.repeatEnabled) {
+    botData.repeatEnabled = false
+    const mapWidth = getPwGameWorldHelper().width
+    const mapHeight = getPwGameWorldHelper().height
+
+    const repeatDir = vec2(botData.repeatVec.x < 0 ? -1 : 1, botData.repeatVec.y < 0 ? -1 : 1)
+
+    const pastePosBlocksFromPos = vec2.add(blockPos, botData.selectionLocalTopLeftPos)
+    const pastePosBlocksToPos = vec2.add(blockPos, botData.selectionLocalBottomRightPos)
+    const pastePosBlocks = getBlocksInArea(oldBlock, blockPos, pastePosBlocksFromPos, pastePosBlocksToPos)
+
+    const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
+    const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
+    const nextBlocksX = getBlocksInArea(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
+
+    const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, botData.selectionSize.y * repeatDir.y))
+    const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, botData.selectionSize.y * repeatDir.y))
+    const nextBlocksY = getBlocksInArea(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
+
+    for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
+      const offsetPosX = pastePosBlocksFromPos.x + x * botData.selectionSize.x * repeatDir.x
+      if (
+        offsetPosX + botData.selectionLocalTopLeftPos.x >= mapWidth ||
+        offsetPosX + botData.selectionLocalBottomRightPos.x < 0
+      ) {
+        break
+      }
+      for (let y = 0; y < Math.abs(botData.repeatVec.y); y++) {
+        const offsetPosY = pastePosBlocksFromPos.y + y * botData.selectionSize.y * repeatDir.y
+        if (
+          offsetPosY + botData.selectionLocalTopLeftPos.y >= mapHeight ||
+          offsetPosY + botData.selectionLocalBottomRightPos.y < 0
+        ) {
+          break
+        }
+
+        const offsetPos = vec2(offsetPosX, offsetPosY)
+
+        let finalBlocks = applyPosOffsetForBlocks(offsetPos, botData.selectedBlocks)
+        if (botData.smartRepeatEnabled) {
+          finalBlocks = applySmartTransformForBlocks(finalBlocks, pastePosBlocks, nextBlocksX, nextBlocksY, x, y)
+        }
+        allBlocks = allBlocks.concat(finalBlocks)
+      }
+    }
+  } else {
+    allBlocks = applyPosOffsetForBlocks(blockPos, botData.selectedBlocks)
+  }
+
+  addUndoItem(botData, allBlocks, oldBlock, blockPos)
+  placeMultipleBlocks(allBlocks)
+}
+
 function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
@@ -192,7 +277,7 @@ function worldBlockPlacedPacketReceived(
   const oldBlock = states.oldBlocks[0]
   const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
   if (data.blockId === BlockNames.COIN_GOLD) {
-    placeBlock(blockPacket)
+    placeBlockPacket(blockPacket)
 
     let selectedTypeText: string
     if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
@@ -227,65 +312,14 @@ function worldBlockPlacedPacketReceived(
         botData.selectionLocalBottomRightPos.y = 0
       }
 
-      botData.selectedBlocks = getSelectedAreaCopy(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
+      botData.selectedBlocks = getBlocksInArea(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
     }
 
     sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
   }
 
   if (data.blockId === BlockNames.COIN_BLUE) {
-    placeBlock(blockPacket)
-    if (botData.repeatEnabled) {
-      botData.repeatEnabled = false
-      let allBlocks: WorldBlock[] = []
-      const mapWidth = getPwGameWorldHelper().width
-      const mapHeight = getPwGameWorldHelper().height
-
-      const repeatDir = vec2(botData.repeatVec.x < 0 ? -1 : 1, botData.repeatVec.y < 0 ? -1 : 1)
-
-      const pastePosBlocksFromPos = vec2.add(blockPos, botData.selectionLocalTopLeftPos)
-      const pastePosBlocksToPos = vec2.add(blockPos, botData.selectionLocalBottomRightPos)
-      const pastePosBlocks = getSelectedAreaCopy(oldBlock, blockPos, pastePosBlocksFromPos, pastePosBlocksToPos)
-
-      const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
-      const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
-      const nextBlocksX = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
-
-      const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, botData.selectionSize.y * repeatDir.y))
-      const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, botData.selectionSize.y * repeatDir.y))
-      const nextBlocksY = getSelectedAreaCopy(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
-
-      for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
-        const offsetPosX = pastePosBlocksFromPos.x + x * botData.selectionSize.x * repeatDir.x
-        if (
-          offsetPosX + botData.selectionLocalTopLeftPos.x >= mapWidth ||
-          offsetPosX + botData.selectionLocalBottomRightPos.x < 0
-        ) {
-          break
-        }
-        for (let y = 0; y < Math.abs(botData.repeatVec.y); y++) {
-          const offsetPosY = pastePosBlocksFromPos.y + y * botData.selectionSize.y * repeatDir.y
-          if (
-            offsetPosY + botData.selectionLocalTopLeftPos.y >= mapHeight ||
-            offsetPosY + botData.selectionLocalBottomRightPos.y < 0
-          ) {
-            break
-          }
-
-          const offsetPos = vec2(offsetPosX, offsetPosY)
-
-          let finalBlocks = applyPosOffsetForBlocks(offsetPos, botData.selectedBlocks)
-          if (botData.smartRepeatEnabled) {
-            finalBlocks = applySmartTransformForBlocks(finalBlocks, pastePosBlocks, nextBlocksX, nextBlocksY, x, y)
-          }
-          allBlocks = allBlocks.concat(finalBlocks)
-        }
-      }
-      placeMultipleBlocks(allBlocks)
-    } else {
-      const offsetBlocks = applyPosOffsetForBlocks(blockPos, botData.selectedBlocks)
-      placeMultipleBlocks(offsetBlocks)
-    }
+    pasteBlocks(blockPacket, botData, blockPos, oldBlock)
   }
 }
 
@@ -297,15 +331,7 @@ function applyPosOffsetForBlocks(offsetPos: Point, worldBlocks: WorldBlock[]) {
   })
 }
 
-function getBlockAt(pos: Point, layer: number): Block {
-  try {
-    return getPwGameWorldHelper().getBlockAt(pos.x, pos.y, layer)
-  } catch (e) {
-    return new Block(0)
-  }
-}
-
-function getSelectedAreaCopy(oldBlock: Block, oldBlockPos: Point, fromPos: Point, toPos: Point) {
+function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, toPos: Point): WorldBlock[] {
   fromPos = cloneDeep(fromPos)
   toPos = cloneDeep(toPos)
   if (fromPos.x > toPos.x) {
@@ -339,14 +365,4 @@ function getSelectedAreaCopy(oldBlock: Block, oldBlockPos: Point, fromPos: Point
     }
   }
   return data
-}
-
-function placeBlock(blockPacket: SendableBlockPacket) {
-  getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
-}
-
-function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
-  const packets = createBlockPackets(worldBlocks)
-
-  packets.forEach((packet) => placeBlock(packet))
 }

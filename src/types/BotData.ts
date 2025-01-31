@@ -2,6 +2,7 @@ import { BotState } from '@/enums/BotState.ts'
 import { Point } from 'pw-js-world'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { vec2 } from '@basementuniverse/vec'
+import { UndoRedoItem } from '@/types/UndoRedoItem.ts'
 
 export type BotData = {
   botState: BotState
@@ -14,6 +15,8 @@ export type BotData = {
   repeatEnabled: boolean
   repeatVec: Point
   smartRepeatEnabled: boolean
+  undoStack: UndoRedoItem[]
+  redoStack: UndoRedoItem[]
 }
 
 export type PlayerBotData = {
@@ -32,5 +35,7 @@ export function createBotData(): BotData {
     repeatEnabled: false,
     repeatVec: vec2(1,1),
     smartRepeatEnabled: false,
+    undoStack: [],
+    redoStack: [],
   }
 }
