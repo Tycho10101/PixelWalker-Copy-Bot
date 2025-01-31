@@ -75,16 +75,6 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
 }
 
 function helpCommandReceived(args: string[], playerId: number) {
-  const HELP_MESSAGE_PING = '.ping - check if bot is alive by pinging it.'
-  const HELP_MESSAGE_HELP = '.help [command] - get general help, or if command is specified, get help about command.'
-  const HELP_MESSAGE_PASTE =
-    '.paste x_times y_times - repeat next paste specified amount of times in x and y direction.'
-  const HELP_MESSAGE_SMARTPASTE =
-    '.smartpaste - same as .paste, but increments special block arguments, when using repeated paste.'
-  const HELP_MESSAGE_UNDO =
-    '.undo - undos laste paste performed by bot'
-  const HELP_MESSAGE_REDO =
-    '.redo - redos last undone paste performed by bot'
   if (args.length == 1) {
     sendPrivateChatMessage('Bot usage:', playerId)
     sendPrivateChatMessage('Gold coin - select blocks', playerId)
@@ -94,22 +84,40 @@ function helpCommandReceived(args: string[], playerId: number) {
     return
   }
   if (args[1] === 'ping') {
-    sendPrivateChatMessage(HELP_MESSAGE_PING, playerId)
+    sendPrivateChatMessage('.ping - check if bot is alive by pinging it.', playerId)
     sendPrivateChatMessage(`Example usage: .ping`, playerId)
     return
   }
   if (args[1] === 'help') {
-    sendPrivateChatMessage(HELP_MESSAGE_HELP, playerId)
+    sendPrivateChatMessage(
+      '.help [command] - get general help, or if command is specified, get help about command.',
+      playerId,
+    )
     sendPrivateChatMessage(`Example usage: .help paste`, playerId)
     return
   }
   if (args[1] === 'paste') {
-    sendPrivateChatMessage(HELP_MESSAGE_PASTE, playerId)
-    sendPrivateChatMessage(`Example usage: .paste 2 3`, playerId)
+    sendPrivateChatMessage(
+      '.paste x_times y_times x_spacing y_spacing - repeat next paste specified amount of times in x and y direction.',
+      playerId,
+    )
+    sendPrivateChatMessage(
+      '(x/y)_spacing indicates gap size to leave between pastes.',
+      playerId,
+    )
+    sendPrivateChatMessage(
+      '.paste x_times y_times - Shorthand for .paste x_times y_times 0 0',
+      playerId,
+    )
+    sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
+    sendPrivateChatMessage(`Example usage 2: .paste 2 3 4 1`, playerId)
     return
   }
   if (args[1] === 'smartpaste') {
-    sendPrivateChatMessage(HELP_MESSAGE_SMARTPASTE, playerId)
+    sendPrivateChatMessage(
+      '.smartpaste - same as .paste, but increments special block arguments, when using repeated paste.',
+      playerId,
+    )
     sendPrivateChatMessage(`Requires specifying pattern before placing in paste location.`, playerId)
     sendPrivateChatMessage(
       `Example: place purple switch id=1 at {x=0,y=0} and purple switch id=2 at {x=1,y=0}.`,
@@ -122,12 +130,12 @@ function helpCommandReceived(args: string[], playerId: number) {
     return
   }
   if (args[1] === 'undo') {
-    sendPrivateChatMessage(HELP_MESSAGE_UNDO, playerId)
+    sendPrivateChatMessage('.undo - undos laste paste performed by bot', playerId)
     sendPrivateChatMessage(`Example usage: .undo`, playerId)
     return
   }
   if (args[1] === 'redo') {
-    sendPrivateChatMessage(HELP_MESSAGE_REDO, playerId)
+    sendPrivateChatMessage('.redo - redos last undone paste performed by bot', playerId)
     sendPrivateChatMessage(`Example usage: .redo`, playerId)
     return
   }
@@ -145,15 +153,28 @@ function redoCommandReceived(_args: string[], playerId: number) {
 }
 
 function pasteCommandReceived(args: string[], playerId: number, smartPaste: boolean) {
+  const ERROR_MESSAGE = `ERROR! Correct usage is ${smartPaste ? '.smartpaste' : '.paste'} x_times y_times [x_spacing y_spacing]`
   const repeatX = Number(args[1])
   const repeatY = Number(args[2])
   if (!isFinite(repeatX) || !isFinite(repeatY)) {
-    sendPrivateChatMessage(`ERROR! Correct usage is ${smartPaste ? '.smartpaste' : '.paste'} x_times y_times`, playerId)
+    sendPrivateChatMessage(ERROR_MESSAGE, playerId)
     return
+  }
+
+  let spacingX = 0
+  let spacingY = 0
+  if (args.length >= 4) {
+    spacingX = Number(args[3])
+    spacingY = Number(args[4])
+    if (!isFinite(spacingX) || !isFinite(spacingY)) {
+      sendPrivateChatMessage(ERROR_MESSAGE, playerId)
+      return
+    }
   }
 
   const botData = getPlayerBotData()[playerId]
   botData.repeatVec = vec2(repeatX, repeatY)
+  botData.spacingVec = vec2(spacingX, spacingY)
   botData.repeatEnabled = true
   botData.smartRepeatEnabled = smartPaste
   sendPrivateChatMessage(`Next paste will be repeated ${repeatX}x${repeatY} times`, playerId)
@@ -198,7 +219,6 @@ function applySmartTransformForBlocks(
 }
 
 function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
-  console.log(new Block(0))
   placeBlockPacket(blockPacket)
   let allBlocks: WorldBlock[] = []
   if (botData.repeatEnabled) {
@@ -207,21 +227,22 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
     const mapHeight = getPwGameWorldHelper().height
 
     const repeatDir = vec2(botData.repeatVec.x < 0 ? -1 : 1, botData.repeatVec.y < 0 ? -1 : 1)
+    const offsetSize = vec2.mul(repeatDir, vec2.add(botData.selectionSize, botData.spacingVec))
 
     const pastePosBlocksFromPos = vec2.add(blockPos, botData.selectionLocalTopLeftPos)
     const pastePosBlocksToPos = vec2.add(blockPos, botData.selectionLocalBottomRightPos)
     const pastePosBlocks = getBlocksInArea(oldBlock, blockPos, pastePosBlocksFromPos, pastePosBlocksToPos)
 
-    const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
-    const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(botData.selectionSize.x * repeatDir.x, 0))
+    const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(offsetSize.x, 0))
+    const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(offsetSize.x, 0))
     const nextBlocksX = getBlocksInArea(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
 
-    const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, botData.selectionSize.y * repeatDir.y))
-    const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, botData.selectionSize.y * repeatDir.y))
+    const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, offsetSize.y))
+    const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, offsetSize.y))
     const nextBlocksY = getBlocksInArea(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
 
     for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
-      const offsetPosX = pastePosBlocksFromPos.x + x * botData.selectionSize.x * repeatDir.x
+      const offsetPosX = pastePosBlocksFromPos.x + x * offsetSize.x
       if (
         offsetPosX + botData.selectionLocalTopLeftPos.x >= mapWidth ||
         offsetPosX + botData.selectionLocalBottomRightPos.x < 0
@@ -229,7 +250,7 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
         break
       }
       for (let y = 0; y < Math.abs(botData.repeatVec.y); y++) {
-        const offsetPosY = pastePosBlocksFromPos.y + y * botData.selectionSize.y * repeatDir.y
+        const offsetPosY = pastePosBlocksFromPos.y + y * offsetSize.y
         if (
           offsetPosY + botData.selectionLocalTopLeftPos.y >= mapHeight ||
           offsetPosY + botData.selectionLocalBottomRightPos.y < 0

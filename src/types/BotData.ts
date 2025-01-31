@@ -14,6 +14,7 @@ export type BotData = {
   selectionLocalBottomRightPos: Point
   repeatEnabled: boolean
   repeatVec: Point
+  spacingVec: Point
   smartRepeatEnabled: boolean
   undoStack: UndoRedoItem[]
   redoStack: UndoRedoItem[]
@@ -34,6 +35,7 @@ export function createBotData(): BotData {
     selectionLocalBottomRightPos: vec2(1,1),
     repeatEnabled: false,
     repeatVec: vec2(1,1),
+    spacingVec: vec2(0,0),
     smartRepeatEnabled: false,
     undoStack: [],
     redoStack: [],
