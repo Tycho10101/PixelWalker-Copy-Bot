@@ -19,26 +19,30 @@ export function addUndoItem(botData: BotData, newBlocks: WorldBlock[], oldBlock:
   botData.undoStack.push(undoRedoItem)
 }
 
-export function performUndo(botData: BotData, playerId: number) {
-  const undoRedoItem = botData.undoStack.pop()
-  if (undoRedoItem === undefined) {
-    sendPrivateChatMessage('There is nothing to undo.', playerId)
-    return
+export function performUndo(botData: BotData, playerId: number, count: number) {
+  let i = 0
+  for (; i < count; i++) {
+    const undoRedoItem = botData.undoStack.pop()
+    if (undoRedoItem === undefined) {
+      break
+    }
+    botData.redoStack.push(undoRedoItem)
+    placeMultipleBlocks(undoRedoItem.oldBlocks)
   }
-  botData.redoStack.push(undoRedoItem)
-  placeMultipleBlocks(undoRedoItem.oldBlocks)
-  sendPrivateChatMessage('Undo performed.', playerId)
+  sendPrivateChatMessage(`Undo performed ${i} time(s).`, playerId)
 }
 
-export function performRedo(botData: BotData, playerId: number) {
-  const undoRedoItem = botData.redoStack.pop()
-  if (undoRedoItem === undefined) {
-    sendPrivateChatMessage('There is nothing to redo.', playerId)
-    return
+export function performRedo(botData: BotData, playerId: number, count: number) {
+  let i = 0
+  for (; i < count; i++) {
+    const undoRedoItem = botData.redoStack.pop()
+    if (undoRedoItem === undefined) {
+      break
+    }
+    botData.undoStack.push(undoRedoItem)
+    placeMultipleBlocks(undoRedoItem.newBlocks)
   }
-  botData.undoStack.push(undoRedoItem)
-  placeMultipleBlocks(undoRedoItem.newBlocks)
-  sendPrivateChatMessage('Redo performed.', playerId)
+  sendPrivateChatMessage(`Redo performed ${i} time(s).`, playerId)
 }
 
 function getOldBlocks(newBlocks: WorldBlock[], oldBlock: Block, oldBlockPos: Point): WorldBlock[] {

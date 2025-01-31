@@ -101,14 +101,8 @@ function helpCommandReceived(args: string[], playerId: number) {
       '.paste x_times y_times x_spacing y_spacing - repeat next paste specified amount of times in x and y direction.',
       playerId,
     )
-    sendPrivateChatMessage(
-      '(x/y)_spacing indicates gap size to leave between pastes.',
-      playerId,
-    )
-    sendPrivateChatMessage(
-      '.paste x_times y_times - Shorthand for .paste x_times y_times 0 0',
-      playerId,
-    )
+    sendPrivateChatMessage('(x/y)_spacing indicates gap size to leave between pastes.', playerId)
+    sendPrivateChatMessage('.paste x_times y_times - Shorthand for .paste x_times y_times 0 0', playerId)
     sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
     sendPrivateChatMessage(`Example usage 2: .paste 2 3 4 1`, playerId)
     return
@@ -130,26 +124,48 @@ function helpCommandReceived(args: string[], playerId: number) {
     return
   }
   if (args[1] === 'undo') {
-    sendPrivateChatMessage('.undo - undos laste paste performed by bot', playerId)
-    sendPrivateChatMessage(`Example usage: .undo`, playerId)
+    sendPrivateChatMessage('.undo count - undoes last paste performed by bot "count" times', playerId)
+    sendPrivateChatMessage('.undo - Shorthand for .undo 1', playerId)
+    sendPrivateChatMessage(`Example usage 1: .undo`, playerId)
+    sendPrivateChatMessage(`Example usage 2: .undo 3`, playerId)
     return
   }
   if (args[1] === 'redo') {
-    sendPrivateChatMessage('.redo - redos last undone paste performed by bot', playerId)
-    sendPrivateChatMessage(`Example usage: .redo`, playerId)
+    sendPrivateChatMessage('.redo count - redoes last paste performed by bot "count" times', playerId)
+    sendPrivateChatMessage('.redo - Shorthand for .redo 1', playerId)
+    sendPrivateChatMessage(`Example usage 1: .redo`, playerId)
+    sendPrivateChatMessage(`Example usage 2: .redo 3`, playerId)
     return
   }
   sendPrivateChatMessage(`ERROR! Unrecognised command ${args[1]}`, playerId)
 }
 
-function undoCommandReceived(_args: string[], playerId: number) {
+function undoCommandReceived(args: string[], playerId: number) {
+  let count = 1
+  if (args.length >= 2) {
+    const ERROR_MESSAGE = `ERROR! Correct usage is .undo [count]`
+    count = Number(args[1])
+    if (!isFinite(count)) {
+      sendPrivateChatMessage(ERROR_MESSAGE, playerId)
+      return
+    }
+  }
   const botData = getPlayerBotData()[playerId]
-  performUndo(botData, playerId)
+  performUndo(botData, playerId, count)
 }
 
-function redoCommandReceived(_args: string[], playerId: number) {
+function redoCommandReceived(args: string[], playerId: number) {
+  let count = 1
+  if (args.length >= 2) {
+    const ERROR_MESSAGE = `ERROR! Correct usage is .redo [count]`
+    count = Number(args[1])
+    if (!isFinite(count)) {
+      sendPrivateChatMessage(ERROR_MESSAGE, playerId)
+      return
+    }
+  }
   const botData = getPlayerBotData()[playerId]
-  performRedo(botData, playerId)
+  performRedo(botData, playerId, count)
 }
 
 function pasteCommandReceived(args: string[], playerId: number, smartPaste: boolean) {
