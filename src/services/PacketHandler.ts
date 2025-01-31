@@ -67,6 +67,10 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
     case '.redo':
       redoCommandReceived(args, playerId)
       break
+    default:
+      if (args[0].startsWith('.')) {
+        sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
+      }
   }
 }
 
@@ -127,6 +131,7 @@ function helpCommandReceived(args: string[], playerId: number) {
     sendPrivateChatMessage(`Example usage: .redo`, playerId)
     return
   }
+  sendPrivateChatMessage(`ERROR! Unrecognised command ${args[1]}`, playerId)
 }
 
 function undoCommandReceived(_args: string[], playerId: number) {
