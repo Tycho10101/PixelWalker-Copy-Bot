@@ -1,16 +1,19 @@
 import { defineStore } from 'pinia'
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { PWGameWorldHelper } from 'pw-js-world'
+import { markRaw, ref } from 'vue'
 
 export const usePWClientStore = defineStore('PWClientStore', () => {
   let pwGameClient: PWGameClient | undefined = undefined
   let pwApiClient: PWApiClient | undefined = undefined
-  const pwGameWorldHelper = new PWGameWorldHelper()
+  const pwGameWorldHelper = markRaw(new PWGameWorldHelper())
+  const worldId = ref<string>('')
 
   return {
     pwGameClient,
     pwApiClient,
     pwGameWorldHelper,
+    worldId,
   }
 })
 

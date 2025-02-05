@@ -1,0 +1,4 @@
+/*Waiting for fix: https://github.com/vuetifyjs/vuetify/issues/17633*/
+ul {
+    padding-left: 2rem;
+}
