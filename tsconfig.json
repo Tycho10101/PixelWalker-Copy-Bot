@@ -33,7 +33,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "types": [
-      "vuetify"
+      "vuetify",
+      "node"
     ]
   },
   "include": [

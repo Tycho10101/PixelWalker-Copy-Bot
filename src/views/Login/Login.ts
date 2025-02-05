@@ -50,6 +50,7 @@ export default defineComponent({
     }
 
     async function onConnectButtonClick() {
+      PWClientStore.worldId = worldId.value
       if (!(await form.value!.validate()).valid) {
         return
       }
