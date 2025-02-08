@@ -222,12 +222,12 @@ function applySmartTransformForBlocks(
         const blockArgType = blockArgTypes[i]
         if (blockArgType === ComponentTypeHeader.Int32) {
           if (pastePosBlock.block.bId === nextBlockX.block.bId) {
-            const diffX = nextBlockX.block.args[i] - pastePosBlock.block.args[i]
-            blockCopy.block.args[i] += diffX * repetitionX
+            const diffX = (nextBlockX.block.args[i] as number) - (pastePosBlock.block.args[i] as number)
+            blockCopy.block.args[i] = (blockCopy.block.args[i] as number) + diffX * repetitionX
           }
           if (pastePosBlock.block.bId === nextBlockY.block.bId) {
-            const diffY = nextBlockY.block.args[i] - pastePosBlock.block.args[i]
-            blockCopy.block.args[i] += diffY * repetitionY
+            const diffY = (nextBlockY.block.args[i] as number) - (pastePosBlock.block.args[i] as number)
+            blockCopy.block.args[i] = (blockCopy.block.args[i] as number) + diffY * repetitionY
           }
         }
       }
