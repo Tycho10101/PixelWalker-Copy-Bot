@@ -7,7 +7,7 @@ import { downloadFile } from '@/services/FileService.ts'
 import ManyKeysMap from 'many-keys-map'
 import { vec2 } from '@basementuniverse/vec'
 import { EelvlFileHeader } from '@/types/WorldData.ts'
-import { PwBlockName } from '@/enums/PwBlockNames.ts'
+import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { getBlockName } from '@/services/WorldService.ts'
 
 function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: number, y: number) {

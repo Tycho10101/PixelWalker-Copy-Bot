@@ -25,7 +25,7 @@ import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
-import { PwBlockName } from '@/enums/PwBlockNames.ts'
+import { PwBlockName } from '@/enums/PwBlockName.ts'
 
 export function registerCallbacks() {
   getPwGameClient()

@@ -6,7 +6,7 @@ import {
   getPwGameWorldHelper,
 } from '@/stores/PWClientStore.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
-import { PwBlockName } from '@/enums/PwBlockNames.ts'
+import { PwBlockName } from '@/enums/PwBlockName.ts'
 
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
