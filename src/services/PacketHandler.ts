@@ -85,61 +85,68 @@ function helpCommandReceived(args: string[], playerId: number) {
     sendPrivateChatMessage('Bot is available here: piratux.github.io/Pixel-Walker-Copy-Bot/', playerId)
     return
   }
-  if (args[1] === 'ping') {
-    sendPrivateChatMessage('.ping - check if bot is alive by pinging it.', playerId)
-    sendPrivateChatMessage(`Example usage: .ping`, playerId)
-    return
+
+  switch (args[1]) {
+    case 'ping':
+    case '.ping':
+      sendPrivateChatMessage('.ping - check if bot is alive by pinging it.', playerId)
+      sendPrivateChatMessage(`Example usage: .ping`, playerId)
+      break
+    case 'help':
+    case '.help':
+      sendPrivateChatMessage(
+        '.help [command] - get general help, or if command is specified, get help about command.',
+        playerId,
+      )
+      sendPrivateChatMessage(`Example usage: .help paste`, playerId)
+      break
+    case 'paste':
+    case '.paste':
+      sendPrivateChatMessage(
+        '.paste x_times y_times x_spacing y_spacing - repeat next paste specified amount of times in x and y direction.',
+        playerId,
+      )
+      sendPrivateChatMessage('(x/y)_spacing indicates gap size to leave between pastes.', playerId)
+      sendPrivateChatMessage('.paste x_times y_times - Shorthand for .paste x_times y_times 0 0', playerId)
+      sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
+      sendPrivateChatMessage(`Example usage 2: .paste 2 3 4 1`, playerId)
+      break
+    case 'smartpaste':
+    case '.smartpaste':
+      sendPrivateChatMessage(
+        '.smartpaste - same as .paste, but increments special block arguments, when using repeated paste.',
+        playerId,
+      )
+      sendPrivateChatMessage(`Requires specifying pattern before placing in paste location.`, playerId)
+      sendPrivateChatMessage(
+        `Example: place purple switch id=1 at {x=0,y=0} and purple switch id=2 at {x=1,y=0}.`,
+        playerId,
+      )
+      sendPrivateChatMessage(`Then select region for copy from {x=0,y=0} to {x=0,y=0}.`, playerId)
+      sendPrivateChatMessage(`Then Type in chat .smartpaste 5 1`, playerId)
+      sendPrivateChatMessage(`Lastly paste your selection at {x=0,y=0}`, playerId)
+      sendPrivateChatMessage(
+        `As result, you should see purple switches with ids [1,2,3,4,5] placed in a row.`,
+        playerId,
+      )
+      break
+    case 'undo':
+    case '.undo':
+      sendPrivateChatMessage('.undo count - undoes last paste performed by bot "count" times', playerId)
+      sendPrivateChatMessage('.undo - Shorthand for .undo 1', playerId)
+      sendPrivateChatMessage(`Example usage 1: .undo`, playerId)
+      sendPrivateChatMessage(`Example usage 2: .undo 3`, playerId)
+      break
+    case 'redo':
+    case '.redo':
+      sendPrivateChatMessage('.redo count - redoes last paste performed by bot "count" times', playerId)
+      sendPrivateChatMessage('.redo - Shorthand for .redo 1', playerId)
+      sendPrivateChatMessage(`Example usage 1: .redo`, playerId)
+      sendPrivateChatMessage(`Example usage 2: .redo 3`, playerId)
+      break
+    default:
+      sendPrivateChatMessage(`ERROR! Unrecognised command ${args[1]}`, playerId)
   }
-  if (args[1] === 'help') {
-    sendPrivateChatMessage(
-      '.help [command] - get general help, or if command is specified, get help about command.',
-      playerId,
-    )
-    sendPrivateChatMessage(`Example usage: .help paste`, playerId)
-    return
-  }
-  if (args[1] === 'paste') {
-    sendPrivateChatMessage(
-      '.paste x_times y_times x_spacing y_spacing - repeat next paste specified amount of times in x and y direction.',
-      playerId,
-    )
-    sendPrivateChatMessage('(x/y)_spacing indicates gap size to leave between pastes.', playerId)
-    sendPrivateChatMessage('.paste x_times y_times - Shorthand for .paste x_times y_times 0 0', playerId)
-    sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
-    sendPrivateChatMessage(`Example usage 2: .paste 2 3 4 1`, playerId)
-    return
-  }
-  if (args[1] === 'smartpaste') {
-    sendPrivateChatMessage(
-      '.smartpaste - same as .paste, but increments special block arguments, when using repeated paste.',
-      playerId,
-    )
-    sendPrivateChatMessage(`Requires specifying pattern before placing in paste location.`, playerId)
-    sendPrivateChatMessage(
-      `Example: place purple switch id=1 at {x=0,y=0} and purple switch id=2 at {x=1,y=0}.`,
-      playerId,
-    )
-    sendPrivateChatMessage(`Then select region for copy from {x=0,y=0} to {x=0,y=0}.`, playerId)
-    sendPrivateChatMessage(`Then Type in chat .smartpaste 5 1`, playerId)
-    sendPrivateChatMessage(`Lastly paste your selection at {x=0,y=0}`, playerId)
-    sendPrivateChatMessage(`As result, you should see purple switches with ids [1,2,3,4,5] placed in a row.`, playerId)
-    return
-  }
-  if (args[1] === 'undo') {
-    sendPrivateChatMessage('.undo count - undoes last paste performed by bot "count" times', playerId)
-    sendPrivateChatMessage('.undo - Shorthand for .undo 1', playerId)
-    sendPrivateChatMessage(`Example usage 1: .undo`, playerId)
-    sendPrivateChatMessage(`Example usage 2: .undo 3`, playerId)
-    return
-  }
-  if (args[1] === 'redo') {
-    sendPrivateChatMessage('.redo count - redoes last paste performed by bot "count" times', playerId)
-    sendPrivateChatMessage('.redo - Shorthand for .redo 1', playerId)
-    sendPrivateChatMessage(`Example usage 1: .redo`, playerId)
-    sendPrivateChatMessage(`Example usage 2: .redo 3`, playerId)
-    return
-  }
-  sendPrivateChatMessage(`ERROR! Unrecognised command ${args[1]}`, playerId)
 }
 
 function undoCommandReceived(args: string[], playerId: number) {
@@ -237,7 +244,7 @@ function applySmartTransformForBlocks(
 }
 
 function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
-  try{
+  try {
     placeBlockPacket(blockPacket)
     let allBlocks: WorldBlock[] = []
 
@@ -288,13 +295,18 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
 
     addUndoItem(botData, allBlocks, oldBlock, blockPos)
     placeMultipleBlocks(allBlocks)
-  }
-  finally {
+  } finally {
     botData.repeatVec = vec2(1, 1)
   }
 }
 
-function selectBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
+function selectBlocks(
+  blockPacket: SendableBlockPacket,
+  botData: BotData,
+  blockPos: Point,
+  oldBlock: Block,
+  playerId: number,
+) {
   placeBlockPacket(blockPacket)
 
   let selectedTypeText: string
