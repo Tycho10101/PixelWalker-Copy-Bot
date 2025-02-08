@@ -8,6 +8,7 @@ import { MessageService } from '@/services/MessageService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/general.ts'
 import { BotInfoRoute } from '@/router/routes.ts'
 import { registerCallbacks } from '@/services/PacketHandler.ts'
+import { getReversedRecord } from '@/utils/reverse_record.ts'
 
 export default defineComponent({
   setup() {
@@ -68,6 +69,9 @@ export default defineComponent({
       if (!(await joinWorld())) {
         return
       }
+
+      PWClientStore.blockMappings = await getPwApiClient().getMappings()
+      PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)
 
       await router.push({ name: BotInfoRoute.name })
     }

@@ -23,8 +23,9 @@ import { BotState } from '@/enums/BotState.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { getBlockAt, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
+import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
+import { PwBlockName } from '@/enums/PwBlockNames.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -215,6 +216,7 @@ function applySmartTransformForBlocks(
     const blockCopy = cloneDeep(pastedBlock)
 
     if (pastePosBlock.block.bId === nextBlockX.block.bId || pastePosBlock.block.bId === nextBlockY.block.bId) {
+      // TODO: fix it so it doesn't break with new block IDs (wait for library update)
       const blockArgTypes: ComponentTypeHeader[] = (BlockArgsHeadings as any)[BlockNames[pastePosBlock.block.bId]] ?? []
       for (let i = 0; i < blockArgTypes.length; i++) {
         const blockArgType = blockArgTypes[i]
@@ -318,7 +320,7 @@ function worldBlockPlacedPacketReceived(
 
   const oldBlock = states.oldBlocks[0]
   const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
-  if (data.blockId === BlockNames.COIN_GOLD) {
+  if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
     placeBlockPacket(blockPacket)
 
     let selectedTypeText: string
@@ -360,7 +362,7 @@ function worldBlockPlacedPacketReceived(
     sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
   }
 
-  if (data.blockId === BlockNames.COIN_BLUE) {
+  if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
     pasteBlocks(blockPacket, botData, blockPos, oldBlock)
   }
 }
