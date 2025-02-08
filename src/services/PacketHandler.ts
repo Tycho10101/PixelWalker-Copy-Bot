@@ -294,6 +294,48 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
   }
 }
 
+function selectBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
+  placeBlockPacket(blockPacket)
+
+  let selectedTypeText: string
+  if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
+    selectedTypeText = 'from'
+    botData.botState = BotState.SELECTED_FROM
+    botData.selectedFromPos = blockPos
+  } else {
+    selectedTypeText = 'to'
+    botData.botState = BotState.SELECTED_TO
+    botData.selectedToPos = blockPos
+    botData.selectionSize = vec2(
+      Math.abs(botData.selectedToPos.x - botData.selectedFromPos.x) + 1,
+      Math.abs(botData.selectedToPos.y - botData.selectedFromPos.y) + 1,
+    )
+
+    const dirX = botData.selectedFromPos.x <= botData.selectedToPos.x ? 1 : -1
+    const dirY = botData.selectedFromPos.y <= botData.selectedToPos.y ? 1 : -1
+
+    if (dirX == 1) {
+      botData.selectionLocalTopLeftPos.x = 0
+      botData.selectionLocalBottomRightPos.x = botData.selectionSize.x - 1
+    } else {
+      botData.selectionLocalTopLeftPos.x = -botData.selectionSize.x + 1
+      botData.selectionLocalBottomRightPos.x = 0
+    }
+
+    if (dirY == 1) {
+      botData.selectionLocalTopLeftPos.y = 0
+      botData.selectionLocalBottomRightPos.y = botData.selectionSize.y - 1
+    } else {
+      botData.selectionLocalTopLeftPos.y = -botData.selectionSize.y + 1
+      botData.selectionLocalBottomRightPos.y = 0
+    }
+
+    botData.selectedBlocks = getBlocksInArea(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
+  }
+
+  sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
+}
+
 function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
@@ -322,45 +364,7 @@ function worldBlockPlacedPacketReceived(
   const oldBlock = states.oldBlocks[0]
   const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
   if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
-    placeBlockPacket(blockPacket)
-
-    let selectedTypeText: string
-    if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
-      selectedTypeText = 'from'
-      botData.botState = BotState.SELECTED_FROM
-      botData.selectedFromPos = blockPos
-    } else {
-      selectedTypeText = 'to'
-      botData.botState = BotState.SELECTED_TO
-      botData.selectedToPos = blockPos
-      botData.selectionSize = vec2(
-        Math.abs(botData.selectedToPos.x - botData.selectedFromPos.x) + 1,
-        Math.abs(botData.selectedToPos.y - botData.selectedFromPos.y) + 1,
-      )
-
-      const dirX = botData.selectedFromPos.x <= botData.selectedToPos.x ? 1 : -1
-      const dirY = botData.selectedFromPos.y <= botData.selectedToPos.y ? 1 : -1
-
-      if (dirX == 1) {
-        botData.selectionLocalTopLeftPos.x = 0
-        botData.selectionLocalBottomRightPos.x = botData.selectionSize.x - 1
-      } else {
-        botData.selectionLocalTopLeftPos.x = -botData.selectionSize.x + 1
-        botData.selectionLocalBottomRightPos.x = 0
-      }
-
-      if (dirY == 1) {
-        botData.selectionLocalTopLeftPos.y = 0
-        botData.selectionLocalBottomRightPos.y = botData.selectionSize.y - 1
-      } else {
-        botData.selectionLocalTopLeftPos.y = -botData.selectionSize.y + 1
-        botData.selectionLocalBottomRightPos.y = 0
-      }
-
-      botData.selectedBlocks = getBlocksInArea(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
-    }
-
-    sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
+    selectBlocks(blockPacket, botData, blockPos, oldBlock, playerId)
   }
 
   if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
