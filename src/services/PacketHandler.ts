@@ -193,7 +193,6 @@ function pasteCommandReceived(args: string[], playerId: number, smartPaste: bool
   const botData = getPlayerBotData()[playerId]
   botData.repeatVec = vec2(repeatX, repeatY)
   botData.spacingVec = vec2(spacingX, spacingY)
-  botData.repeatEnabled = true
   botData.smartRepeatEnabled = smartPaste
   sendPrivateChatMessage(`Next paste will be repeated ${repeatX}x${repeatY} times`, playerId)
 }
@@ -238,10 +237,10 @@ function applySmartTransformForBlocks(
 }
 
 function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
-  placeBlockPacket(blockPacket)
-  let allBlocks: WorldBlock[] = []
-  if (botData.repeatEnabled) {
-    botData.repeatEnabled = false
+  try{
+    placeBlockPacket(blockPacket)
+    let allBlocks: WorldBlock[] = []
+
     const mapWidth = getPwGameWorldHelper().width
     const mapHeight = getPwGameWorldHelper().height
 
@@ -286,12 +285,13 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
         allBlocks = allBlocks.concat(finalBlocks)
       }
     }
-  } else {
-    allBlocks = applyPosOffsetForBlocks(blockPos, botData.selectedBlocks)
-  }
 
-  addUndoItem(botData, allBlocks, oldBlock, blockPos)
-  placeMultipleBlocks(allBlocks)
+    addUndoItem(botData, allBlocks, oldBlock, blockPos)
+    placeMultipleBlocks(allBlocks)
+  }
+  finally {
+    botData.repeatVec = vec2(1, 1)
+  }
 }
 
 function worldBlockPlacedPacketReceived(

@@ -12,7 +12,6 @@ export type BotData = {
   selectionSize: Point
   selectionLocalTopLeftPos: Point
   selectionLocalBottomRightPos: Point
-  repeatEnabled: boolean
   repeatVec: Point
   spacingVec: Point
   smartRepeatEnabled: boolean
@@ -33,7 +32,6 @@ export function createBotData(): BotData {
     selectionSize: vec2(1,1),
     selectionLocalTopLeftPos: vec2(0,0),
     selectionLocalBottomRightPos: vec2(1,1),
-    repeatEnabled: false,
     repeatVec: vec2(1,1),
     spacingVec: vec2(0,0),
     smartRepeatEnabled: false,
