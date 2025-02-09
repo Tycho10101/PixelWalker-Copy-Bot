@@ -49,6 +49,10 @@ export default defineComponent({
           >Export to EELVL
         </PiButton>
       </v-row>
+      <v-row>
+        <input ref="importEelvlFileInput" accept=".eelvl" style="display: none" type="file" @change="onFileChange" />
+        <PiButton color="blue" @click="onImportButtonClick">Import from EELVL</PiButton>
+      </v-row>
     </v-col>
   </PiCardContainer>
   <PiCardContainer>
@@ -76,17 +80,42 @@ export default defineComponent({
           <li>Green sign [69] (nice). Replaced with normal signs.</li>
           <li>Purple mineral block [322]. Replaced with magenta mineral block.</li>
           <li>Plate with cake chocolate and pie cherry [1292, 1293]. Replaced with empty plate.</li>
-          <li>A use for world portal [74]. There is no way to enter PW world id and then open browser to join it. So it's always replaced
-            with world id pointing to "Current" with id 1.</li>
+          <li>
+            A use for world portal [74]. There is no way to enter PixelWalker world id and then open browser to join it.
+            So it's always replaced with world id pointing to "Current" with id 1.
+          </li>
           <li>A use for world portal spawn [65]. Same as world portal, so id always replaced with 1.</li>
         </ul>
       </v-row>
       <v-row>Note: Numbers in [] brackets represent PixelWalker block ids.</v-row>
       <v-row>
         <br />
-        Fun fact: Signs only let you enter 140 characters in EE: Offline. But it will happily accept EELVL file which has sign
-        with more than 140 characters and will correctly show in game.
+        Fun fact: Signs only let you enter 140 characters in EE: Offline. But it will happily accept EELVL file which
+        has sign with more than 140 characters and will correctly show in game.
       </v-row>
+
+      <v-row>
+        <h3><br />Import info</h3></v-row>
+      <v-row>
+        PixelWalker doesn't have:
+        <ul>
+          <li>Block for picked up gold/blue coin [110, 111].</li>
+          <li>Timed gate/door [156, 157].</li>
+          <li>Trophy [223, 478 - 480, 484 - 486, 1540 - 1542].</li>
+          <li>Fog decoration [343 - 351].</li>
+          <li>Label [1000].</li>
+          <li>Poison effect [1584].</li>
+          <li>Gold gate/door [200, 201].</li>
+          <li>Fireworks decoration [1581].</li>
+          <li>Golden easter egg decoration [1591].</li>
+          <li>Green space decoration [1603].</li>
+          <li>Shadow [1596, 1605 - 1617].</li>
+          <li>NPC [1550 - 1559, 1569 - 1579].</li>
+          <li>Zombie and curse effect duration is limited to 720 seconds, but in EELVL limit is 999 seconds.</li>
+        </ul>
+      </v-row>
+      <v-row>All missing blocks replaced with signs of block name.</v-row>
+      <v-row>Note: Numbers in [] brackets represent EELVL block ids.</v-row>
     </v-col>
   </PiCardContainer>
 </template>

@@ -1,7 +1,7 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
 import { EelvlBlockId, hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/enums/EelvlBlockId.ts'
 import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
-import { Block } from 'pw-js-world'
+import { Block, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
 import { downloadFile } from '@/services/FileService.ts'
 import ManyKeysMap from 'many-keys-map'
@@ -9,6 +9,7 @@ import { vec2 } from '@basementuniverse/vec'
 import { EelvlFileHeader } from '@/types/WorldData.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { getBlockName } from '@/services/WorldService.ts'
+import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 
 function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: number, y: number) {
   if (!blocks.has(key)) {
@@ -18,7 +19,7 @@ function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: numbe
   }
 }
 
-export function pwToEelvl() {
+export function exportToEelvl() {
   const worldMeta = getPwGameWorldHelper().meta!
   const world: EelvlFileHeader = {
     ownerName: worldMeta.owner ?? 'Unknown',
@@ -55,7 +56,7 @@ export function pwToEelvl() {
     for (let y: number = 0; y < getPwGameWorldHelper().height; y++) {
       for (let x: number = 0; x < getPwGameWorldHelper().width; x++) {
         const pwBlock = getPwGameWorldHelper().getBlockAt(x, y, z)
-        const eelvlLayer = 1 - z
+        const eelvlLayer = mapLayerPwToEelvl(z)
         const eelvlBlock = mapBlockIdPwToEelvl(pwBlock)
         const eelvlBlockId: number = eelvlBlock.blockId
 
@@ -77,13 +78,9 @@ export function pwToEelvl() {
   for (const [keys, positions] of blocks) {
     const eelvlBlockId: number = keys[0]
     const eelvlLayer: number = keys[1]
-    const [blockPositionsX, blockPositionsY] = getPositionsByteArrays(positions)
     bytes.writeInt(eelvlBlockId)
     bytes.writeInt(eelvlLayer)
-    bytes.writeUnsignedInt(blockPositionsX.length)
-    bytes.writeBytes(blockPositionsX)
-    bytes.writeUnsignedInt(blockPositionsY.length)
-    bytes.writeBytes(blockPositionsY)
+    writePositionsByteArrays(bytes, positions)
     for (let i: number = 2; i < keys.length; i++) {
       const key = keys[i]
       if (typeof key === 'string') {
@@ -101,29 +98,44 @@ export function pwToEelvl() {
   downloadFile(bytes.buffer, fileName)
 }
 
+function mapLayerPwToEelvl(pwLayer: number) {
+  switch (pwLayer) {
+    case LayerType.Background:
+      return EelvlLayer.BACKGROUND
+    case LayerType.Foreground:
+      return EelvlLayer.FOREGROUND
+    default:
+      throw Error(`Unknown layer type: ${pwLayer}`)
+  }
+}
+
 function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLayer: number) {
   return [eelvlBlockId, eelvlLayer, ...getBlockArgs(eelvlBlockId, eelvlBlock)]
 }
 
 function getBlockArgs(eelvlBlockId: number, eelvlBlock: EelvlBlock) {
-  if (hasEelvlBlockOneIntParameter(eelvlBlockId)) {
-    return [eelvlBlock.intParameter]
-  } else if (eelvlBlockId === EelvlBlockId.PORTAL || eelvlBlockId === EelvlBlockId.PORTAL_INVISIBLE) {
-    return [eelvlBlock.intParameter, eelvlBlock.portalId, eelvlBlock.portalTarget]
-  } else if (eelvlBlockId === EelvlBlockId.SIGN_NORMAL) {
-    return [eelvlBlock.signText, eelvlBlock.signType]
-  } else if (eelvlBlockId === EelvlBlockId.PORTAL_WORLD) {
-    return [eelvlBlock.worldPortalTargetWorldId, eelvlBlock.worldPortalTargetSpawnPointId]
-  } else if (eelvlBlockId === EelvlBlockId.LABEL) {
-    return [eelvlBlock.labelText, eelvlBlock.labelTextColor, eelvlBlock.labelWrapLength]
-  } else if (isEelvlNpc(eelvlBlockId)) {
-    return [eelvlBlock.npcName, eelvlBlock.npcMessage1, eelvlBlock.npcMessage2, eelvlBlock.npcMessage3]
-  } else {
-    return []
+  switch (eelvlBlockId) {
+    case EelvlBlockId.PORTAL:
+    case EelvlBlockId.PORTAL_INVISIBLE:
+      return [eelvlBlock.intParameter, eelvlBlock.portalId, eelvlBlock.portalTarget]
+    case EelvlBlockId.SIGN_NORMAL:
+      return [eelvlBlock.signText, eelvlBlock.signType]
+    case EelvlBlockId.PORTAL_WORLD:
+      return [eelvlBlock.worldPortalTargetWorldId, eelvlBlock.worldPortalTargetSpawnPointId]
+    case EelvlBlockId.LABEL:
+      return [eelvlBlock.labelText, eelvlBlock.labelTextColor, eelvlBlock.labelWrapLength]
+    default:
+      if (hasEelvlBlockOneIntParameter(eelvlBlockId)) {
+        return [eelvlBlock.intParameter]
+      } else if (isEelvlNpc(eelvlBlockId)) {
+        return [eelvlBlock.npcName, eelvlBlock.npcMessage1, eelvlBlock.npcMessage2, eelvlBlock.npcMessage3]
+      } else {
+        return []
+      }
   }
 }
 
-function getPositionsByteArrays(positions: vec2[]): [ByteArray, ByteArray] {
+function writePositionsByteArrays(bytes: ByteArray, positions: vec2[]) {
   const positionsX: ByteArray = new ByteArray(0)
   const positionsY: ByteArray = new ByteArray(0)
 
@@ -131,7 +143,11 @@ function getPositionsByteArrays(positions: vec2[]): [ByteArray, ByteArray] {
     positionsX.writeUnsignedShort(pos.x)
     positionsY.writeUnsignedShort(pos.y)
   }
-  return [positionsX, positionsY]
+
+  bytes.writeUnsignedInt(positionsX.length)
+  bytes.writeBytes(positionsX)
+  bytes.writeUnsignedInt(positionsY.length)
+  bytes.writeBytes(positionsY)
 }
 
 function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
@@ -205,7 +221,9 @@ function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
     case PwBlockName.SWITCH_LOCAL_ACTIVATOR:
       return getPwToEelvlSwitchActivatorBlock(pwBlock, EelvlBlockId.SWITCH_LOCAL_ACTIVATOR)
     case PwBlockName.SWITCH_LOCAL_RESETTER:
-      return createMissingBlockSign(`${PwBlockName.SWITCH_LOCAL_RESETTER} switch state: ${pwBlock.args[0] === 1 ? 'ON' : 'OFF'}`)
+      return createMissingBlockSign(
+        `${PwBlockName.SWITCH_LOCAL_RESETTER} switch state: ${pwBlock.args[0] === 1 ? 'ON' : 'OFF'}`,
+      )
     case PwBlockName.SWITCH_LOCAL_DOOR:
       return { blockId: EelvlBlockId.SWITCH_LOCAL_DOOR, intParameter: pwBlock.args[0] as number }
     case PwBlockName.SWITCH_LOCAL_GATE:
@@ -215,7 +233,9 @@ function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
     case PwBlockName.SWITCH_GLOBAL_ACTIVATOR:
       return getPwToEelvlSwitchActivatorBlock(pwBlock, EelvlBlockId.SWITCH_GLOBAL_ACTIVATOR)
     case PwBlockName.SWITCH_GLOBAL_RESETTER:
-      return createMissingBlockSign(`${PwBlockName.SWITCH_GLOBAL_RESETTER} switch state: ${pwBlock.args[0] === 1 ? 'ON' : 'OFF'}`)
+      return createMissingBlockSign(
+        `${PwBlockName.SWITCH_GLOBAL_RESETTER} switch state: ${pwBlock.args[0] === 1 ? 'ON' : 'OFF'}`,
+      )
     case PwBlockName.SWITCH_GLOBAL_DOOR:
       return { blockId: EelvlBlockId.SWITCH_GLOBAL_DOOR, intParameter: pwBlock.args[0] as number }
     case PwBlockName.SWITCH_GLOBAL_GATE:
@@ -1105,9 +1125,12 @@ function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
     case PwBlockName.TOXIC_SEWER_DRAIN_MUD:
       return { blockId: EelvlBlockId.TOXIC_SEWER_DRAIN_EMPTY, intParameter: 4 }
     default: {
+      if (pwBlockName === undefined) {
+        return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
+      }
       const eelvlBlockId: EelvlBlockId = EelvlBlockId[pwBlockName as keyof typeof EelvlBlockId]
       if (eelvlBlockId === undefined) {
-        return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
+        return createMissingBlockSign(`Missing EELVL block: ${pwBlockName}`)
       }
 
       return { blockId: eelvlBlockId }
@@ -1202,7 +1225,9 @@ function getPwToEelvlSwitchActivatorBlock(pwBlock: Block, eelvlBlockId: EelvlBlo
     return { blockId: eelvlBlockId, intParameter: pwBlock.args[0] as number }
   } else {
     const pwBlockName =
-      eelvlBlockId === EelvlBlockId.SWITCH_LOCAL_ACTIVATOR ? PwBlockName.SWITCH_LOCAL_ACTIVATOR : PwBlockName.SWITCH_GLOBAL_ACTIVATOR
+      eelvlBlockId === EelvlBlockId.SWITCH_LOCAL_ACTIVATOR
+        ? PwBlockName.SWITCH_LOCAL_ACTIVATOR
+        : PwBlockName.SWITCH_GLOBAL_ACTIVATOR
     return createMissingBlockSign(`${pwBlockName} switch id: ${pwBlock.args[0]}, switch state: ON`)
   }
 }

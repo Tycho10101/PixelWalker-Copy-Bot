@@ -1170,7 +1170,7 @@ export enum EelvlBlockId {
   NPC_CRAB = 1579,
 }
 
-export function isEelvlBlockRotateable(eelvlBlockId: number): Boolean {
+export function hasEelvlBlockOneIntParameter(eelvlBlockId: number): Boolean {
   return [
     EelvlBlockId.SCIFI_LASER_BLUE_CORNER_BOTTOMRIGHT,
     EelvlBlockId.SCIFI_LASER_BLUE_STRAIGHT_VERTICAL,
@@ -1277,21 +1277,13 @@ export function isEelvlBlockRotateable(eelvlBlockId: number): Boolean {
     EelvlBlockId.SHADOW_M,
     EelvlBlockId.SHADOW_N,
     EelvlBlockId.DUNGEON_TORCH_YELLOW,
-  ].includes(eelvlBlockId)
-}
 
-export function isEelvlNonRotatableHalfBlock(eelvlBlockId: number): Boolean {
-  return [
     EelvlBlockId.CHRISTMAS_GIFT_HALF_RED,
     EelvlBlockId.CHRISTMAS_GIFT_HALF_GREEN,
     EelvlBlockId.CHRISTMAS_GIFT_HALF_WHITE,
     EelvlBlockId.CHRISTMAS_GIFT_HALF_BLUE,
     EelvlBlockId.CHRISTMAS_GIFT_HALF_YELLOW,
-  ].includes(eelvlBlockId)
-}
 
-export function isEelvlBlockNumbered(eelvlBlockId: number): Boolean {
-  return [
     EelvlBlockId.COIN_GOLD_DOOR,
     EelvlBlockId.COIN_BLUE_DOOR,
     EelvlBlockId.COIN_GOLD_GATE,
@@ -1320,6 +1312,17 @@ export function isEelvlBlockNumbered(eelvlBlockId: number): Boolean {
     EelvlBlockId.EFFECTS_POISON,
     EelvlBlockId.EFFECTS_ZOMBIE,
     EelvlBlockId.TOOL_PORTAL_WORLD_SPAWN,
+
+    EelvlBlockId.NOTE_GUITAR,
+    EelvlBlockId.NOTE_DRUM,
+    EelvlBlockId.NOTE_PIANO,
+    EelvlBlockId.HAZARD_SPIKES_BROWN_UP,
+    EelvlBlockId.HAZARD_SPIKES_WHITE_UP,
+    EelvlBlockId.HAZARD_SPIKES_GRAY_UP,
+    EelvlBlockId.HAZARD_SPIKES_RED_UP,
+    EelvlBlockId.HAZARD_SPIKES_YELLOW_UP,
+    EelvlBlockId.HAZARD_SPIKES_GREEN_UP,
+    EelvlBlockId.HAZARD_SPIKES_BLUE_UP,
   ].includes(eelvlBlockId)
 }
 
@@ -1347,22 +1350,4 @@ export function isEelvlNpc(eelvlBlockId: number): Boolean {
     EelvlBlockId.NPC_WALRUS,
     EelvlBlockId.NPC_CRAB,
   ].includes(eelvlBlockId)
-}
-
-export function hasEelvlBlockOneIntParameter(eelvlBlockId: number): Boolean {
-  return (
-    isEelvlBlockRotateable(eelvlBlockId) ||
-    isEelvlNonRotatableHalfBlock(eelvlBlockId) ||
-    isEelvlBlockNumbered(eelvlBlockId) ||
-    eelvlBlockId === EelvlBlockId.NOTE_GUITAR ||
-    eelvlBlockId === EelvlBlockId.NOTE_DRUM ||
-    eelvlBlockId === EelvlBlockId.NOTE_PIANO ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_BROWN_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_WHITE_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_GRAY_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_RED_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_YELLOW_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_GREEN_UP ||
-    eelvlBlockId === EelvlBlockId.HAZARD_SPIKES_BLUE_UP
-  )
 }
