@@ -5,6 +5,21 @@ Bot for PixelWalker game that allows to copy/paste selected regions.
 Hosted on GitHub pages at:\
 http://piratux.github.io/Pixel-Walker-Copy-Bot/
 
+## Feature overview
+
+Features accessible via commands:
+
+- Copy/paste selected region
+- Repeated paste of selected region
+    - Smart repeated paste - switches/portals/etc. get auto incremented based on placed pattern (useful for building
+      switch worlds)
+- Undo/redo blocks placed by bot
+
+Features accessible via bot page:
+
+- Export PixelWalker world to .eelvl file
+- Import .eelvl file to PixelWalker world
+
 ## Local development
 
 At the root of project run:
@@ -28,7 +43,7 @@ To have custom config only when running locally:
 - Create `.env.local` file at the root of the project as a copy of `.env`
 - Modify the values in `.env.local` to your needs
 
-All env file entries must start with `VITE_`, otherwise value will be undefined in code.
+NOTE: All env file entries must start with `VITE_`, otherwise value will be undefined in code.
 
 ## Test production build
 
