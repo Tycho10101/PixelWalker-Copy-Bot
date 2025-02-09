@@ -10,6 +10,7 @@ import { getBlockId, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { cloneDeep } from 'lodash-es'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
+import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 
 export function importFromEelvl(fileData: ArrayBuffer) {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -30,12 +31,15 @@ export function importFromEelvl(fileData: ArrayBuffer) {
   world.minimapEnabled = bytes.readBoolean()
   world.ownerId = bytes.readUTF()
 
+  const pwMapWidth = getPwGameWorldHelper().width
+  const pwMapHeight = getPwGameWorldHelper().height
+
   const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
   for (let l = 0; l < 2; l++) {
     pwBlock3DArray[l] = []
-    for (let x = 0; x < world.width; x++) {
+    for (let x = 0; x < pwMapWidth; x++) {
       pwBlock3DArray[l][x] = []
-      for (let y = 0; y < world.height; y++) {
+      for (let y = 0; y < pwMapHeight; y++) {
         pwBlock3DArray[l][x][y] = new Block(0)
       }
     }
@@ -51,14 +55,16 @@ export function importFromEelvl(fileData: ArrayBuffer) {
     const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
     const pwLayer = mapLayerEelvlToPw(eelvlLayer)
     for (const pos of blockPositions) {
-      pwBlock3DArray[pwLayer][pos.x][pos.y] = pwBlock
+      if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
+        pwBlock3DArray[pwLayer][pos.x][pos.y] = pwBlock
+      }
     }
   }
 
-  const pwBlocks = [] as WorldBlock[]
+  let pwBlocks = [] as WorldBlock[]
   for (let l = 0; l < 2; l++) {
-    for (let x = 0; x < world.width; x++) {
-      for (let y = 0; y < world.height; y++) {
+    for (let x = 0; x < pwMapWidth; x++) {
+      for (let y = 0; y < pwMapHeight; y++) {
         const pwBlock = cloneDeep(pwBlock3DArray[l][x][y])
         pwBlocks.push({ block: pwBlock, layer: l, pos: vec2(x, y) })
       }
@@ -199,7 +205,10 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
     case EelvlBlockId.PORTAL_INVISIBLE:
       return getEelvlToPwPortalBlock(eelvlBlock, PwBlockName.PORTAL_INVISIBLE)
     case EelvlBlockId.PORTAL_WORLD:
-      return createBlock(PwBlockName.PORTAL_WORLD, [eelvlBlock.worldPortalTargetWorldId!, eelvlBlock.worldPortalTargetSpawnPointId!])
+      return createBlock(PwBlockName.PORTAL_WORLD, [
+        eelvlBlock.worldPortalTargetWorldId!,
+        eelvlBlock.worldPortalTargetSpawnPointId!,
+      ])
     case EelvlBlockId.SWITCH_LOCAL_TOGGLE:
       return createBlock(PwBlockName.SWITCH_LOCAL_TOGGLE, [eelvlBlock.intParameter!])
     case EelvlBlockId.SWITCH_LOCAL_ACTIVATOR:
@@ -1553,7 +1562,7 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
       }
     default:
       const eelvlBlockName = EelvlBlockId[eelvlBlock.blockId]
-      if(eelvlBlockName === undefined){
+      if (eelvlBlockName === undefined) {
         return createMissingBlockSign(`Unknown Block ID: ${eelvlBlock.blockId}`)
       }
       const pwBlockName: PwBlockName = PwBlockName[eelvlBlockName as keyof typeof PwBlockName]
