@@ -11,6 +11,7 @@ import { WorldBlock } from '@/types/WorldBlock.ts'
 import { cloneDeep } from 'lodash-es'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 
 export function importFromEelvl(fileData: ArrayBuffer) {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -72,6 +73,7 @@ export function importFromEelvl(fileData: ArrayBuffer) {
   }
 
   placeMultipleBlocks(pwBlocks)
+  sendGlobalChatMessage('Finished importing eelvl file.')
 }
 
 function mapLayerEelvlToPw(eelvlLayer: number) {
