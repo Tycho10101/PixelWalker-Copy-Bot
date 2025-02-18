@@ -102,10 +102,7 @@ function helpCommandReceived(args: string[], playerId: number) {
       break
     case 'paste':
     case '.paste':
-      sendPrivateChatMessage(
-        '.paste x_times y_times x_spacing y_spacing - repeat next paste (x/y)_times.',
-        playerId,
-      )
+      sendPrivateChatMessage('.paste x_times y_times x_spacing y_spacing - repeat next paste (x/y)_times.', playerId)
       sendPrivateChatMessage('(x/y)_spacing indicates gap size to leave between pastes.', playerId)
       sendPrivateChatMessage('.paste x_times y_times - Shorthand for .paste x_times y_times 0 0', playerId)
       sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
