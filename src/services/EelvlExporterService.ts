@@ -57,7 +57,7 @@ export function exportToEelvl() {
       for (let x: number = 0; x < getPwGameWorldHelper().width; x++) {
         const pwBlock = getPwGameWorldHelper().getBlockAt(x, y, z)
         const eelvlLayer = mapLayerPwToEelvl(z)
-        const eelvlBlock = mapBlockIdPwToEelvl(pwBlock)
+        const eelvlBlock = mapBlockIdPwToEelvl(pwBlock, eelvlLayer)
         const eelvlBlockId: number = eelvlBlock.blockId
 
         if (eelvlBlockId === EelvlBlockId.EMPTY) {
@@ -150,7 +150,7 @@ function writePositionsByteArrays(bytes: ByteArray, positions: vec2[]) {
   bytes.writeBytes(positionsY)
 }
 
-function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
+function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock {
   const pwBlockName: string = getBlockName(pwBlock.bId)
 
   switch (pwBlockName) {
@@ -1125,11 +1125,11 @@ function mapBlockIdPwToEelvl(pwBlock: Block): EelvlBlock {
     case PwBlockName.TOXIC_SEWER_DRAIN_MUD:
       return { blockId: EelvlBlockId.TOXIC_SEWER_DRAIN_EMPTY, intParameter: 4 }
     default: {
-      if (pwBlockName === undefined) {
+      if (pwBlockName === undefined && eelvlLayer !== EelvlLayer.BACKGROUND) {
         return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
       }
       const eelvlBlockId: EelvlBlockId = EelvlBlockId[pwBlockName as keyof typeof EelvlBlockId]
-      if (eelvlBlockId === undefined) {
+      if (eelvlBlockId === undefined && eelvlLayer !== EelvlLayer.BACKGROUND) {
         return createMissingBlockSign(`Missing EELVL block: ${pwBlockName}`)
       }
 
