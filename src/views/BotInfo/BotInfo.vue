@@ -85,6 +85,8 @@ export default defineComponent({
             So it's always replaced with world id pointing to "Current" with id 1.
           </li>
           <li>A use for world portal spawn [65]. Same as world portal, so id always replaced with 1.</li>
+          <li>Hex Backgrounds.</li>
+          <li>Counter blocks.</li>
         </ul>
       </v-row>
       <v-row>Note: Numbers in [] brackets represent PixelWalker block ids.</v-row>
@@ -95,7 +97,8 @@ export default defineComponent({
       </v-row>
 
       <v-row>
-        <h3><br />Import info</h3></v-row>
+        <h3><br />Import info</h3></v-row
+      >
       <v-row>
         PixelWalker doesn't have:
         <ul>
