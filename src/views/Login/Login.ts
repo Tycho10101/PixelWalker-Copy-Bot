@@ -45,7 +45,7 @@ export default defineComponent({
 
         return true
       } catch (e) {
-        MessageService.error('Failed to join world. ' + e.message)
+        MessageService.error('Failed to join world. ' + (e as Error).message)
         return false
       }
     }
@@ -56,13 +56,13 @@ export default defineComponent({
         return
       }
 
-      PWClientStore.pwApiClient = new PWApiClient(email.value, password.value)
+      PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
 
       if (!(await authenticate())) {
         return
       }
 
-      PWClientStore.pwGameClient = new PWGameClient(getPwApiClient())
+      PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
 
       registerCallbacks()
 

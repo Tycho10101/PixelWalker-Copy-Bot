@@ -18,8 +18,8 @@ export default defineComponent({
     async function onDisconnectButtonClick() {
       getPwGameClient().disconnect(false)
 
-      PWClientStore.pwGameClient = undefined
-      PWClientStore.pwApiClient = undefined
+      PWClientStore.setPwGameClient(undefined)
+      PWClientStore.setPwApiClient(undefined)
       await router.push({ name: LoginRoute.name })
     }
 
