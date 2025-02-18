@@ -13,7 +13,7 @@ import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 
-export function importFromEelvl(fileData: ArrayBuffer) {
+export async function importFromEelvl(fileData: ArrayBuffer) {
   const bytes = new ByteArray(new Uint8Array(fileData))
   bytes.uncompress()
 
@@ -72,7 +72,7 @@ export function importFromEelvl(fileData: ArrayBuffer) {
     }
   }
 
-  placeMultipleBlocks(pwBlocks)
+  await placeMultipleBlocks(pwBlocks)
   sendGlobalChatMessage('Finished importing eelvl file.')
 }
 

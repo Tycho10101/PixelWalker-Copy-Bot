@@ -7,6 +7,7 @@ import {
 } from '@/stores/PWClientStore.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { sleep } from '@/utils/sleep.ts'
 
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
@@ -16,10 +17,18 @@ export function getBlockAt(pos: Point, layer: number): Block {
   }
 }
 
-export function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
+export async function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
   const packets = createBlockPackets(worldBlocks)
 
-  packets.forEach((packet) => placeBlockPacket(packet))
+  for (let i = 0; i < packets.length; i++) {
+    placeBlockPacket(packets[i])
+    
+    // TODO: Remove this, once Doom fixes packet throttling
+    const MAX_PACKET_COUNT_PER_SECOND = 80
+    if (i % MAX_PACKET_COUNT_PER_SECOND === MAX_PACKET_COUNT_PER_SECOND - 1) {
+      await sleep(1000)
+    }
+  }
 }
 
 export function placeBlockPacket(blockPacket: SendableBlockPacket) {
