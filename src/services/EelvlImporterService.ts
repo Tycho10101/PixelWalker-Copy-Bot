@@ -14,66 +14,70 @@ import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 
 export async function importFromEelvl(fileData: ArrayBuffer) {
-  const bytes = new ByteArray(new Uint8Array(fileData))
-  bytes.uncompress()
+  try {
+    const bytes = new ByteArray(new Uint8Array(fileData))
+    bytes.uncompress()
 
-  const world = {} as EelvlFileHeader
-  world.ownerName = bytes.readUTF()
-  world.name = bytes.readUTF()
-  world.width = bytes.readInt()
-  world.height = bytes.readInt()
-  world.gravMultiplier = bytes.readFloat()
-  world.backgroundColor = bytes.readUnsignedInt()
-  world.description = bytes.readUTF()
-  world.isCampaign = bytes.readBoolean()
-  world.crewId = bytes.readUTF()
-  world.crewName = bytes.readUTF()
-  world.crewStatus = bytes.readInt()
-  world.minimapEnabled = bytes.readBoolean()
-  world.ownerId = bytes.readUTF()
+    const world = {} as EelvlFileHeader
+    world.ownerName = bytes.readUTF()
+    world.name = bytes.readUTF()
+    world.width = bytes.readInt()
+    world.height = bytes.readInt()
+    world.gravMultiplier = bytes.readFloat()
+    world.backgroundColor = bytes.readUnsignedInt()
+    world.description = bytes.readUTF()
+    world.isCampaign = bytes.readBoolean()
+    world.crewId = bytes.readUTF()
+    world.crewName = bytes.readUTF()
+    world.crewStatus = bytes.readInt()
+    world.minimapEnabled = bytes.readBoolean()
+    world.ownerId = bytes.readUTF()
 
-  const pwMapWidth = getPwGameWorldHelper().width
-  const pwMapHeight = getPwGameWorldHelper().height
+    const pwMapWidth = getPwGameWorldHelper().width
+    const pwMapHeight = getPwGameWorldHelper().height
 
-  const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
-  for (let l = 0; l < 2; l++) {
-    pwBlock3DArray[l] = []
-    for (let x = 0; x < pwMapWidth; x++) {
-      pwBlock3DArray[l][x] = []
-      for (let y = 0; y < pwMapHeight; y++) {
-        pwBlock3DArray[l][x][y] = new Block(0)
+    const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
+    for (let l = 0; l < 2; l++) {
+      pwBlock3DArray[l] = []
+      for (let x = 0; x < pwMapWidth; x++) {
+        pwBlock3DArray[l][x] = []
+        for (let y = 0; y < pwMapHeight; y++) {
+          pwBlock3DArray[l][x][y] = new Block(0)
+        }
       }
     }
-  }
 
-  while (bytes.hashposition < bytes.length) {
-    const eelvlBlockId = bytes.readInt()
-    const eelvlLayer = bytes.readInt()
-    const blockPositions = readPositionsByteArrays(bytes)
-    const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
-    eelvlBlock.blockId = eelvlBlockId
+    while (bytes.hashposition < bytes.length) {
+      const eelvlBlockId = bytes.readInt()
+      const eelvlLayer = bytes.readInt()
+      const blockPositions = readPositionsByteArrays(bytes)
+      const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
+      eelvlBlock.blockId = eelvlBlockId
 
-    const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
-    const pwLayer = mapLayerEelvlToPw(eelvlLayer)
-    for (const pos of blockPositions) {
-      if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
-        pwBlock3DArray[pwLayer][pos.x][pos.y] = pwBlock
+      const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
+      const pwLayer = mapLayerEelvlToPw(eelvlLayer)
+      for (const pos of blockPositions) {
+        if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
+          pwBlock3DArray[pwLayer][pos.x][pos.y] = pwBlock
+        }
       }
     }
-  }
 
-  let pwBlocks = [] as WorldBlock[]
-  for (let l = 0; l < 2; l++) {
-    for (let x = 0; x < pwMapWidth; x++) {
-      for (let y = 0; y < pwMapHeight; y++) {
-        const pwBlock = cloneDeep(pwBlock3DArray[l][x][y])
-        pwBlocks.push({ block: pwBlock, layer: l, pos: vec2(x, y) })
+    let pwBlocks = [] as WorldBlock[]
+    for (let l = 0; l < 2; l++) {
+      for (let x = 0; x < pwMapWidth; x++) {
+        for (let y = 0; y < pwMapHeight; y++) {
+          const pwBlock = cloneDeep(pwBlock3DArray[l][x][y])
+          pwBlocks.push({ block: pwBlock, layer: l, pos: vec2(x, y) })
+        }
       }
     }
-  }
 
-  await placeMultipleBlocks(pwBlocks)
-  sendGlobalChatMessage('Finished importing eelvl file.')
+    await placeMultipleBlocks(pwBlocks)
+    sendGlobalChatMessage('Finished importing eelvl file.')
+  } catch (e) {
+    sendGlobalChatMessage('Unkown error occured while importing eelvl file.')
+  }
 }
 
 function mapLayerEelvlToPw(eelvlLayer: number) {
