@@ -8,6 +8,7 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   let _pwApiClient: PWApiClient | undefined
   const pwGameWorldHelper = markRaw(new PWGameWorldHelper())
   const worldId = ref<string>('')
+  const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
   let blockMappings: Record<string, number> = {}
   let blockMappingsReversed: Record<number, string> = {}
 
@@ -42,6 +43,7 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     blockMappingsReversed,
     setPwGameClient,
     setPwApiClient,
+    totalBlocksLeftToReceiveFromWorldImport,
   }
 })
 

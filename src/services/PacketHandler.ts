@@ -4,7 +4,7 @@ import {
   PlayerJoinedPacket,
   WorldBlockPlacedPacket,
 } from 'pw-js-api/esm/gen/world_pb'
-import { getPwGameClient, getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { BlockNames } from 'pw-js-api'
 import {
   Block,
@@ -21,7 +21,7 @@ import { BotData, createBotData } from '@/types/BotData.ts'
 import { getPlayerBotData } from '@/stores/BotStore.ts'
 import { BotState } from '@/enums/BotState.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
-import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
+import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
@@ -77,7 +77,6 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
 
 function helpCommandReceived(args: string[], playerId: number) {
   if (args.length == 1) {
-    sendPrivateChatMessage('Bot usage:', playerId)
     sendPrivateChatMessage('Gold coin - select blocks', playerId)
     sendPrivateChatMessage('Blue coin - paste blocks', playerId)
     sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo', playerId)
@@ -345,11 +344,27 @@ function selectBlocks(
   sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
 }
 
+function hasWorldImportFinished(data: WorldBlockPlacedPacket) {
+  // Not really reliable, but good enough
+  if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport > 0) {
+    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport -= data.positions.length
+    if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport <= 0) {
+      usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
+      return true
+    }
+  }
+  return false
+}
+
 function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
   const LayerType = Constants.LayerType
+
+  if (hasWorldImportFinished(data)) {
+    sendGlobalChatMessage('Finished importing eelvl file.')
+  }
 
   if (data.playerId === getPwGameWorldHelper().botPlayerId) {
     return

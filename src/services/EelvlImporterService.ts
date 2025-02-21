@@ -10,7 +10,7 @@ import { getBlockId, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { cloneDeep } from 'lodash-es'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
-import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 
 export async function importFromEelvl(fileData: ArrayBuffer) {
@@ -73,10 +73,11 @@ export async function importFromEelvl(fileData: ArrayBuffer) {
       }
     }
 
-    await placeMultipleBlocks(pwBlocks)
-    sendGlobalChatMessage('Finished importing eelvl file.')
+    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = pwBlocks.length
+    placeMultipleBlocks(pwBlocks)
   } catch (e) {
-    sendGlobalChatMessage('Unkown error occured while importing eelvl file.')
+    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
+    sendGlobalChatMessage('Unknown error occurred while importing eelvl file.')
   }
 }
 
