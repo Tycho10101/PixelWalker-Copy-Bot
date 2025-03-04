@@ -1125,12 +1125,21 @@ function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock
     case PwBlockName.TOXIC_SEWER_DRAIN_MUD:
       return { blockId: EelvlBlockId.TOXIC_SEWER_DRAIN_EMPTY, intParameter: 4 }
     default: {
-      if (pwBlockName === undefined && eelvlLayer !== EelvlLayer.BACKGROUND) {
-        return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
+      if (pwBlockName === undefined) {
+        if (eelvlLayer === EelvlLayer.FOREGROUND) {
+          return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
+        } else {
+          return { blockId: EelvlBlockId.EMPTY }
+        }
       }
+
       const eelvlBlockId: EelvlBlockId = EelvlBlockId[pwBlockName as keyof typeof EelvlBlockId]
-      if (eelvlBlockId === undefined && eelvlLayer !== EelvlLayer.BACKGROUND) {
-        return createMissingBlockSign(`Missing EELVL block: ${pwBlockName}`)
+      if (eelvlBlockId === undefined) {
+        if (eelvlLayer === EelvlLayer.FOREGROUND) {
+          return createMissingBlockSign(`Missing EELVL block: ${pwBlockName}`)
+        } else {
+          return { blockId: EelvlBlockId.EMPTY }
+        }
       }
 
       return { blockId: eelvlBlockId }
