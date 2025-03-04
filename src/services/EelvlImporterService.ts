@@ -339,9 +339,9 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
           return createBlock(PwBlockName.TEAM_EFFECT_NONE)
         case 1:
           return createBlock(PwBlockName.TEAM_EFFECT_RED)
-        case 2:
-          return createBlock(PwBlockName.TEAM_EFFECT_GREEN)
         case 3:
+          return createBlock(PwBlockName.TEAM_EFFECT_GREEN)
+        case 2:
           return createBlock(PwBlockName.TEAM_EFFECT_BLUE)
         case 4:
           return createBlock(PwBlockName.TEAM_EFFECT_CYAN)
@@ -358,9 +358,9 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
           return createBlock(PwBlockName.TEAM_NONE_DOOR)
         case 1:
           return createBlock(PwBlockName.TEAM_RED_DOOR)
-        case 2:
-          return createBlock(PwBlockName.TEAM_GREEN_DOOR)
         case 3:
+          return createBlock(PwBlockName.TEAM_GREEN_DOOR)
+        case 2:
           return createBlock(PwBlockName.TEAM_BLUE_DOOR)
         case 4:
           return createBlock(PwBlockName.TEAM_CYAN_DOOR)
@@ -377,9 +377,9 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
           return createBlock(PwBlockName.TEAM_NONE_GATE)
         case 1:
           return createBlock(PwBlockName.TEAM_RED_GATE)
-        case 2:
-          return createBlock(PwBlockName.TEAM_GREEN_GATE)
         case 3:
+          return createBlock(PwBlockName.TEAM_GREEN_GATE)
+        case 2:
           return createBlock(PwBlockName.TEAM_BLUE_GATE)
         case 4:
           return createBlock(PwBlockName.TEAM_CYAN_GATE)

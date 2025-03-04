@@ -331,9 +331,9 @@ function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock
     case PwBlockName.TEAM_EFFECT_RED:
       return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 1 }
     case PwBlockName.TEAM_EFFECT_GREEN:
-      return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 2 }
-    case PwBlockName.TEAM_EFFECT_BLUE:
       return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 3 }
+    case PwBlockName.TEAM_EFFECT_BLUE:
+      return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 2 }
     case PwBlockName.TEAM_EFFECT_CYAN:
       return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 4 }
     case PwBlockName.TEAM_EFFECT_MAGENTA:
@@ -345,9 +345,9 @@ function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock
     case PwBlockName.TEAM_RED_DOOR:
       return { blockId: EelvlBlockId.TEAM_NONE_DOOR, intParameter: 1 }
     case PwBlockName.TEAM_GREEN_DOOR:
-      return { blockId: EelvlBlockId.TEAM_NONE_DOOR, intParameter: 2 }
-    case PwBlockName.TEAM_BLUE_DOOR:
       return { blockId: EelvlBlockId.TEAM_NONE_DOOR, intParameter: 3 }
+    case PwBlockName.TEAM_BLUE_DOOR:
+      return { blockId: EelvlBlockId.TEAM_NONE_DOOR, intParameter: 2 }
     case PwBlockName.TEAM_CYAN_DOOR:
       return { blockId: EelvlBlockId.TEAM_NONE_DOOR, intParameter: 4 }
     case PwBlockName.TEAM_MAGENTA_DOOR:
@@ -359,9 +359,9 @@ function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock
     case PwBlockName.TEAM_RED_GATE:
       return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 1 }
     case PwBlockName.TEAM_GREEN_GATE:
-      return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 2 }
-    case PwBlockName.TEAM_BLUE_GATE:
       return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 3 }
+    case PwBlockName.TEAM_BLUE_GATE:
+      return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 2 }
     case PwBlockName.TEAM_CYAN_GATE:
       return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 4 }
     case PwBlockName.TEAM_MAGENTA_GATE:
