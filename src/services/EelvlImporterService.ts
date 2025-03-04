@@ -103,7 +103,7 @@ function readEelvlBlock(bytes: ByteArray, eelvlBlockId: number) {
       eelvlBlock.portalTarget = bytes.readInt()
       break
     case EelvlBlockId.SIGN_NORMAL:
-      eelvlBlock.signText = bytes.readUTF().replace('\\n', '\n')
+      eelvlBlock.signText = bytes.readUTF().replaceAll('\\n', '\n')
       eelvlBlock.signType = bytes.readInt()
       break
     case EelvlBlockId.PORTAL_WORLD:
