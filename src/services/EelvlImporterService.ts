@@ -1657,6 +1657,10 @@ function getEelvlToPwPortalBlock(eelvlBlock: EelvlBlock, pwBlockName: PwBlockNam
 function getEelvlToPwNoteBlock(eelvlBlock: EelvlBlock, pwBlockName: PwBlockName): Block {
   const noteArray = new Uint8Array(1)
   noteArray[0] = eelvlBlock.intParameter as number
+  if (pwBlockName === PwBlockName.NOTE_PIANO) {
+    noteArray[0] += 27
+  }
+
   return createBlock(pwBlockName, [noteArray as Buffer])
 }
 

@@ -142,16 +142,6 @@ export class ByteArray {
   }
 
   /**
-   * Simulates signed overflow
-   * @author truelossless
-   */
-  signedOverflow(value: number, bits: number): number {
-    const sign = 1 << (bits - 1)
-
-    return (value & (sign - 1)) - (value & sign)
-  }
-
-  /**
    * Clears the buffer and sets the position to 0
    */
   clear() {
@@ -163,7 +153,6 @@ export class ByteArray {
    * idk wtf
    */
   compress() {
-    // TODO: compress duh
     if (this.length === 0) return
 
     this.buffer = deflateRawSync(this.buffer)
@@ -328,7 +317,6 @@ export class ByteArray {
    * Decompresses the buffer
    */
   uncompress() {
-    // TODO: compress duh
     if (this.length === 0) return
 
     this.buffer = inflateRawSync(this.buffer)
@@ -351,7 +339,8 @@ export class ByteArray {
    */
   writeByte(value: number) {
     this.hashexpand(1)
-    this.buffer.writeInt8(this.signedOverflow(value, 8), this.hashposition++)
+    this.buffer.writeInt8(value, this.hashposition)
+    this.hashposition += 1
   }
 
   /**
@@ -392,7 +381,7 @@ export class ByteArray {
    * Writes a signed int
    */
   writeInt(value: number): void {
-    this.hashwriteBufferFunc(this.signedOverflow(value, 32), 'writeInt32', 4)
+    this.hashwriteBufferFunc(value, 'writeInt32', 4)
   }
 
   /**
@@ -417,7 +406,7 @@ export class ByteArray {
    * Writes a signed short
    */
   writeShort(value: number): void {
-    this.hashwriteBufferFunc(this.signedOverflow(value, 16), 'writeInt16', 2)
+    this.hashwriteBufferFunc(value, 'writeInt16', 2)
   }
 
   /**

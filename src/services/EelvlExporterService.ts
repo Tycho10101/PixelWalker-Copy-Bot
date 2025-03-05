@@ -1226,7 +1226,11 @@ function getPwToEelvlPortalBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): Ee
 }
 
 function getPwToEelvlNoteBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): EelvlBlock {
-  return { blockId: eelvlBlockId, intParameter: (pwBlock.args[0] as Uint8Array).at(0) }
+  let intParameter = (pwBlock.args[0] as Uint8Array).at(0)!
+  if (eelvlBlockId === EelvlBlockId.NOTE_PIANO) {
+    intParameter -= 27
+  }
+  return { blockId: eelvlBlockId, intParameter: intParameter }
 }
 
 function getPwToEelvlSwitchActivatorBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): EelvlBlock {
