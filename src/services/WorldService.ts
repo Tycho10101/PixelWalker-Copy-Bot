@@ -1,4 +1,4 @@
-import { Block, createBlockPackets, Point, SendableBlockPacket } from 'pw-js-world'
+import { Block, createBlockPackets, DeserialisedStructure, Point, SendableBlockPacket } from 'pw-js-world'
 import {
   getBlockMappings,
   getBlockMappingsReversed,
@@ -18,6 +18,14 @@ export function getBlockAt(pos: Point, layer: number): Block {
 
 export function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
   const packets = createBlockPackets(worldBlocks)
+
+  for (const packet of packets) {
+    placeBlockPacket(packet)
+  }
+}
+
+export function placeWorldDataBlocks(worldData: DeserialisedStructure, pos: Point) {
+  const packets = worldData.toPackets(pos.x, pos.y)
 
   for (const packet of packets) {
     placeBlockPacket(packet)

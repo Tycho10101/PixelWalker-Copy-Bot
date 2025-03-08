@@ -1,81 +1,77 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
 import { EelvlBlockId, hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/enums/EelvlBlockId.ts'
 import type { BlockArg } from 'pw-js-world'
-import { Block, LayerType } from 'pw-js-world'
+import { Block, DeserialisedStructure, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { EelvlFileHeader } from '@/types/WorldData.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
-import { getBlockId, placeMultipleBlocks } from '@/services/WorldService.ts'
-import { WorldBlock } from '@/types/WorldBlock.ts'
-import { cloneDeep } from 'lodash-es'
+import { getBlockId, placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
+import { cloneDeep } from 'lodash-es'
+
+export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
+  const bytes = new ByteArray(new Uint8Array(fileData))
+  bytes.uncompress()
+
+  const world = {} as EelvlFileHeader
+  world.ownerName = bytes.readUTF()
+  world.name = bytes.readUTF()
+  world.width = bytes.readInt()
+  world.height = bytes.readInt()
+  world.gravMultiplier = bytes.readFloat()
+  world.backgroundColor = bytes.readUnsignedInt()
+  world.description = bytes.readUTF()
+  world.isCampaign = bytes.readBoolean()
+  world.crewId = bytes.readUTF()
+  world.crewName = bytes.readUTF()
+  world.crewStatus = bytes.readInt()
+  world.minimapEnabled = bytes.readBoolean()
+  world.ownerId = bytes.readUTF()
+
+  const pwMapWidth = getPwGameWorldHelper().width
+  const pwMapHeight = getPwGameWorldHelper().height
+
+  const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
+  for (let l = 0; l < 2; l++) {
+    pwBlock3DArray[l] = []
+    for (let x = 0; x < pwMapWidth; x++) {
+      pwBlock3DArray[l][x] = []
+      for (let y = 0; y < pwMapHeight; y++) {
+        pwBlock3DArray[l][x][y] = new Block(0)
+      }
+    }
+  }
+
+  while (bytes.hashposition < bytes.length) {
+    const eelvlBlockId = bytes.readInt()
+    const eelvlLayer = bytes.readInt()
+    const blockPositions = readPositionsByteArrays(bytes)
+    const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
+    eelvlBlock.blockId = eelvlBlockId
+
+    const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
+    const pwLayer = mapLayerEelvlToPw(eelvlLayer)
+    for (const pos of blockPositions) {
+      if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
+        pwBlock3DArray[pwLayer][pos.x][pos.y] = cloneDeep(pwBlock)
+      }
+    }
+  }
+
+  return new DeserialisedStructure(pwBlock3DArray, { width: pwMapWidth, height: pwMapHeight })
+}
 
 export async function importFromEelvl(fileData: ArrayBuffer) {
   try {
-    const bytes = new ByteArray(new Uint8Array(fileData))
-    bytes.uncompress()
+    const worldData = getImportedFromEelvlData(fileData)
 
-    const world = {} as EelvlFileHeader
-    world.ownerName = bytes.readUTF()
-    world.name = bytes.readUTF()
-    world.width = bytes.readInt()
-    world.height = bytes.readInt()
-    world.gravMultiplier = bytes.readFloat()
-    world.backgroundColor = bytes.readUnsignedInt()
-    world.description = bytes.readUTF()
-    world.isCampaign = bytes.readBoolean()
-    world.crewId = bytes.readUTF()
-    world.crewName = bytes.readUTF()
-    world.crewStatus = bytes.readInt()
-    world.minimapEnabled = bytes.readBoolean()
-    world.ownerId = bytes.readUTF()
-
-    const pwMapWidth = getPwGameWorldHelper().width
-    const pwMapHeight = getPwGameWorldHelper().height
-
-    const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
-    for (let l = 0; l < 2; l++) {
-      pwBlock3DArray[l] = []
-      for (let x = 0; x < pwMapWidth; x++) {
-        pwBlock3DArray[l][x] = []
-        for (let y = 0; y < pwMapHeight; y++) {
-          pwBlock3DArray[l][x][y] = new Block(0)
-        }
-      }
-    }
-
-    while (bytes.hashposition < bytes.length) {
-      const eelvlBlockId = bytes.readInt()
-      const eelvlLayer = bytes.readInt()
-      const blockPositions = readPositionsByteArrays(bytes)
-      const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
-      eelvlBlock.blockId = eelvlBlockId
-
-      const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
-      const pwLayer = mapLayerEelvlToPw(eelvlLayer)
-      for (const pos of blockPositions) {
-        if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
-          pwBlock3DArray[pwLayer][pos.x][pos.y] = pwBlock
-        }
-      }
-    }
-
-    let pwBlocks = [] as WorldBlock[]
-    for (let l = 0; l < 2; l++) {
-      for (let x = 0; x < pwMapWidth; x++) {
-        for (let y = 0; y < pwMapHeight; y++) {
-          const pwBlock = cloneDeep(pwBlock3DArray[l][x][y])
-          pwBlocks.push({ block: pwBlock, layer: l, pos: vec2(x, y) })
-        }
-      }
-    }
-
-    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = pwBlocks.length
-    placeMultipleBlocks(pwBlocks)
+    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = worldData.width * worldData.height * 2
+    placeWorldDataBlocks(worldData, vec2(0, 0))
   } catch (e) {
+    console.log(e)
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
     sendGlobalChatMessage('Unknown error occurred while importing eelvl file.')
   }
@@ -1655,13 +1651,13 @@ function getEelvlToPwPortalBlock(eelvlBlock: EelvlBlock, pwBlockName: PwBlockNam
 }
 
 function getEelvlToPwNoteBlock(eelvlBlock: EelvlBlock, pwBlockName: PwBlockName): Block {
-  const noteArray = new Uint8Array(1)
-  noteArray[0] = eelvlBlock.intParameter as number
+  let noteValue = eelvlBlock.intParameter as number
   if (pwBlockName === PwBlockName.NOTE_PIANO) {
-    noteArray[0] += 27
+    noteValue += 27
   }
+  const noteBuffer = Buffer.from([noteValue])
 
-  return createBlock(pwBlockName, [noteArray as Buffer])
+  return createBlock(pwBlockName, [noteBuffer])
 }
 
 function getEelvlToPwSwitchActivatorBlock(eelvlBlock: EelvlBlock, pwBlockName: PwBlockName): Block {

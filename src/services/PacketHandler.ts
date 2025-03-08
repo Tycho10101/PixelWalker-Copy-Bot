@@ -10,7 +10,7 @@ import {
   Block,
   BlockArgsHeadings,
   ComponentTypeHeader,
-  Constants,
+  LayerType,
   createBlockPacket,
   IPlayer,
   Point,
@@ -26,6 +26,7 @@ import { vec2 } from '@basementuniverse/vec'
 import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -68,11 +69,27 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
     case '.redo':
       redoCommandReceived(args, playerId)
       break
+    case '.test':
+      testCommandReceived(args, playerId)
+      break
     default:
       if (args[0].startsWith('.')) {
         sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
       }
   }
+}
+
+/**
+ * Performs runtime tests
+ * @param args
+ * @param playerId
+ */
+function testCommandReceived(args: string[], playerId: number) {
+  if (getPwGameWorldHelper().getPlayer(playerId).username !== 'PIRATUX') {
+    return
+  }
+
+  performRuntimeTests()
 }
 
 function helpCommandReceived(args: string[], playerId: number) {
@@ -360,8 +377,6 @@ function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
-  const LayerType = Constants.LayerType
-
   if (hasWorldImportFinished(data)) {
     sendGlobalChatMessage('Finished importing eelvl file.')
   }
@@ -413,8 +428,6 @@ function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, to
   if (fromPos.y > toPos.y) {
     ;[fromPos.y, toPos.y] = [toPos.y, fromPos.y]
   }
-  // TODO: replace this with exported LayerType enum
-  const LayerType = Constants.LayerType
   let data: WorldBlock[] = []
   for (let x = 0; x <= toPos.x - fromPos.x; x++) {
     for (let y = 0; y <= toPos.y - fromPos.y; y++) {

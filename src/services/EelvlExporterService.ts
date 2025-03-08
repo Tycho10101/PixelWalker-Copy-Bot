@@ -19,7 +19,7 @@ function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: numbe
   }
 }
 
-export function exportToEelvl() {
+export function getExportedToEelvlData() {
   const worldMeta = getPwGameWorldHelper().meta!
   const world: EelvlFileHeader = {
     ownerName: worldMeta.owner ?? 'Unknown',
@@ -95,7 +95,13 @@ export function exportToEelvl() {
   bytes.compress()
   const worldId = usePWClientStore().worldId
   const fileName = `${world.name} - ${world.width}x${world.height} - ${worldId}.eelvl`
-  downloadFile(bytes.buffer, fileName)
+
+  return [bytes.buffer, fileName]
+}
+
+export function exportToEelvl() {
+  const [byteBuffer, fileName] = getExportedToEelvlData()
+  downloadFile(byteBuffer, fileName)
 }
 
 function mapLayerPwToEelvl(pwLayer: number) {
