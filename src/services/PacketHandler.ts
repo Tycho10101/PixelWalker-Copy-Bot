@@ -46,7 +46,7 @@ function playerJoinedPacketReceived(data: PlayerJoinedPacket) {
   sendPrivateChatMessage('Copy Bot is here! Type .help to show usage!', playerId)
 }
 
-function playerChatPacketReceived(data: PlayerChatPacket) {
+async function playerChatPacketReceived(data: PlayerChatPacket) {
   const args = data.message.split(' ')
   const playerId = data.playerId
 
@@ -70,7 +70,7 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
       redoCommandReceived(args, playerId)
       break
     case '.test':
-      testCommandReceived(args, playerId)
+      await testCommandReceived(args, playerId)
       break
     default:
       if (args[0].startsWith('.')) {
@@ -79,17 +79,12 @@ function playerChatPacketReceived(data: PlayerChatPacket) {
   }
 }
 
-/**
- * Performs runtime tests
- * @param args
- * @param playerId
- */
-function testCommandReceived(args: string[], playerId: number) {
-  if (getPwGameWorldHelper().getPlayer(playerId).username !== 'PIRATUX') {
+async function testCommandReceived(_args: string[], playerId: number) {
+  if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
     return
   }
 
-  performRuntimeTests()
+  await performRuntimeTests()
 }
 
 function helpCommandReceived(args: string[], playerId: number) {
