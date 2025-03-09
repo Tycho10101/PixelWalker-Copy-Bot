@@ -28,7 +28,7 @@ import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoServic
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
 import { PWApiClient, PWGameClient } from 'pw-js-api/esm'
-import { pwAuthenticate, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
+import { pwAuthenticate, pwCheckEdit, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
 import { PWGameWorldHelper } from 'pw-js-world/esm'
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/general.ts'
@@ -88,6 +88,10 @@ async function playerChatPacketReceived(data: PlayerChatPacket) {
 }
 
 async function importCommandReceived(args: string[], playerId: number) {
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
   if (args.length < 2) {
     sendPrivateChatMessage('ERROR! Correct usage is .import world_id', playerId)
     return
@@ -140,6 +144,10 @@ async function importCommandReceived(args: string[], playerId: number) {
 
 async function testCommandReceived(_args: string[], playerId: number) {
   if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
+    return
+  }
+
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
     return
   }
 
@@ -217,6 +225,10 @@ function helpCommandReceived(args: string[], playerId: number) {
 }
 
 function undoCommandReceived(args: string[], playerId: number) {
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
   let count = 1
   if (args.length >= 2) {
     const ERROR_MESSAGE = `ERROR! Correct usage is .undo [count]`
@@ -231,6 +243,10 @@ function undoCommandReceived(args: string[], playerId: number) {
 }
 
 function redoCommandReceived(args: string[], playerId: number) {
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
   let count = 1
   if (args.length >= 2) {
     const ERROR_MESSAGE = `ERROR! Correct usage is .redo [count]`
@@ -245,6 +261,10 @@ function redoCommandReceived(args: string[], playerId: number) {
 }
 
 function pasteCommandReceived(args: string[], playerId: number, smartPaste: boolean) {
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
   const ERROR_MESSAGE = `ERROR! Correct usage is ${smartPaste ? '.smartpaste' : '.paste'} x_times y_times [x_spacing y_spacing]`
   const repeatX = Number(args[1])
   const repeatY = Number(args[2])
@@ -453,10 +473,18 @@ function worldBlockPlacedPacketReceived(
   const oldBlock = states.oldBlocks[0]
   const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
   if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
+    if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+      return
+    }
+
     selectBlocks(blockPacket, botData, blockPos, oldBlock, playerId)
   }
 
   if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
+    if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+      return
+    }
+
     pasteBlocks(blockPacket, botData, blockPos, oldBlock)
   }
 }

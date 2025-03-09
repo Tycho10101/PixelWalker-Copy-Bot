@@ -4,6 +4,7 @@ import { Block, DeserialisedStructure, PWGameWorldHelper } from 'pw-js-world'
 import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 
 export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   const authenticationResult = await pwApiClient.authenticate()
@@ -46,4 +47,31 @@ export function pwCreateEmptyBlocks(pwGameWorldHelper: PWGameWorldHelper): Deser
 export async function pwClearWorld(): Promise<void> {
   const emptyBlocks = pwCreateEmptyBlocks(getPwGameWorldHelper())
   await placeWorldDataBlocks(emptyBlocks, vec2(0, 0))
+}
+
+export function pwUserHasEditAccess(pwGameWorldHelper: PWGameWorldHelper, playerId: number): boolean {
+  return pwGameWorldHelper.getPlayer(playerId)?.rights.canEdit === true
+}
+
+export function pwCheckEdit(pwGameWorldHelper: PWGameWorldHelper, playerId: number): boolean {
+  if (!pwUserHasEditAccess(pwGameWorldHelper, playerId)) {
+    sendPrivateChatMessage('ERROR! You do not have edit access.', playerId)
+    return false
+  }
+
+  if (!pwUserHasEditAccess(pwGameWorldHelper, pwGameWorldHelper.botPlayerId)) {
+    sendPrivateChatMessage('ERROR! Bot does not have edit access.', playerId)
+    return false
+  }
+
+  return true
+}
+
+export function pwCheckEditWhenImporting(pwGameWorldHelper: PWGameWorldHelper): boolean {
+  if (!pwUserHasEditAccess(pwGameWorldHelper, pwGameWorldHelper.botPlayerId)) {
+    sendGlobalChatMessage('ERROR! Bot does not have edit access.')
+    return false
+  }
+
+  return true
 }

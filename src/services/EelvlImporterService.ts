@@ -11,6 +11,7 @@ import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
+import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
 
 export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -66,6 +67,10 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
 
 export async function importFromEelvl(fileData: ArrayBuffer) {
   try {
+    if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
+      return
+    }
+
     const worldData = getImportedFromEelvlData(fileData)
 
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = worldData.width * worldData.height * 2
