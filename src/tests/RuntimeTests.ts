@@ -4,6 +4,7 @@ import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
 import { deepStrictEqual } from 'node:assert'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
+import { TOTAL_EELVL_LAYERS } from '@/constants/general.ts'
 
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')
@@ -37,7 +38,7 @@ async function testImport() {
 
   deepStrictEqual(importedFromEelvlData.width, importedFromPwlvlData.width)
   deepStrictEqual(importedFromEelvlData.height, importedFromPwlvlData.height)
-  for (let layer = 0; layer < 2; layer++) {
+  for (let layer = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
     for (let x = 0; x < importedFromEelvlData.width; x++) {
       for (let y = 0; y < importedFromEelvlData.height; y++) {
         const importedBlock = importedFromEelvlData.blocks[layer][x][y]

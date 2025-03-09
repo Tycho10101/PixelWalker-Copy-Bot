@@ -9,6 +9,7 @@ import {
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { sleep } from '@/utils/sleep.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/general.ts'
 
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
@@ -27,7 +28,7 @@ export async function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
 export async function placeWorldDataBlocks(worldData: DeserialisedStructure, pos: Point): Promise<boolean> {
   const packets: SendableBlockPacket[] = worldData.toPackets(pos.x, pos.y)
 
-  return await placePackets(packets, worldData.width * worldData.height * 2)
+  return await placePackets(packets, worldData.width * worldData.height * TOTAL_PW_LAYERS)
 }
 
 function placePackets(packets: SendableBlockPacket[], blockCount: number): Promise<boolean> {

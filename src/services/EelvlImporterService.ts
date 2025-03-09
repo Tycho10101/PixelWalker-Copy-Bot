@@ -8,10 +8,11 @@ import { EelvlFileHeader } from '@/types/WorldData.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { getBlockId, placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
-import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
 import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
+import { TOTAL_EELVL_LAYERS } from '@/constants/general.ts'
 
 export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -36,12 +37,12 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
   const pwMapHeight = getPwGameWorldHelper().height
 
   const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
-  for (let l = 0; l < 2; l++) {
-    pwBlock3DArray[l] = []
+  for (let layer = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
+    pwBlock3DArray[layer] = []
     for (let x = 0; x < pwMapWidth; x++) {
-      pwBlock3DArray[l][x] = []
+      pwBlock3DArray[layer][x] = []
       for (let y = 0; y < pwMapHeight; y++) {
-        pwBlock3DArray[l][x][y] = new Block(0)
+        pwBlock3DArray[layer][x][y] = new Block(0)
       }
     }
   }
@@ -72,7 +73,6 @@ export async function importFromEelvl(fileData: ArrayBuffer) {
 
     const worldData = getImportedFromEelvlData(fileData)
 
-    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = worldData.width * worldData.height * 2
     const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
     if (success) {
       sendGlobalChatMessage('Finished importing world.')
@@ -81,7 +81,6 @@ export async function importFromEelvl(fileData: ArrayBuffer) {
     }
   } catch (e) {
     console.error(e)
-    usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
     sendGlobalChatMessage('Unknown error occurred while importing eelvl file.')
   }
 }

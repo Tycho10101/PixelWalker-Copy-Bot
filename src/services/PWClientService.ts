@@ -1,5 +1,5 @@
 import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { GENERAL_CONSTANTS } from '@/constants/general.ts'
+import { GENERAL_CONSTANTS, TOTAL_PW_LAYERS } from '@/constants/general.ts'
 import { Block, DeserialisedStructure, PWGameWorldHelper } from 'pw-js-world'
 import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
@@ -32,12 +32,12 @@ export function pwCreateEmptyBlocks(pwGameWorldHelper: PWGameWorldHelper): Deser
   const width = pwGameWorldHelper.width
   const height = pwGameWorldHelper.height
   const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
-  for (let l = 0; l < 2; l++) {
-    pwBlock3DArray[l] = []
+  for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
+    pwBlock3DArray[layer] = []
     for (let x = 0; x < width; x++) {
-      pwBlock3DArray[l][x] = []
+      pwBlock3DArray[layer][x] = []
       for (let y = 0; y < height; y++) {
-        pwBlock3DArray[l][x][y] = new Block(0)
+        pwBlock3DArray[layer][x][y] = new Block(0)
       }
     }
   }
