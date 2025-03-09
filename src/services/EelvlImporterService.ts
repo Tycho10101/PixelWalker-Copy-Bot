@@ -51,7 +51,6 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
     const eelvlLayer = bytes.readInt()
     const blockPositions = readPositionsByteArrays(bytes)
     const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
-    eelvlBlock.blockId = eelvlBlockId
 
     const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
     const pwLayer = mapLayerEelvlToPw(eelvlLayer)
@@ -132,6 +131,7 @@ function readEelvlBlock(bytes: ByteArray, eelvlBlockId: number) {
       }
   }
 
+  eelvlBlock.blockId = eelvlBlockId
   return eelvlBlock
 }
 
