@@ -26,6 +26,9 @@ export default defineComponent({
 
       PWClientStore.setPwGameClient(undefined)
       PWClientStore.setPwApiClient(undefined)
+      PWClientStore.worldId = ''
+      PWClientStore.email = ''
+      PWClientStore.password = ''
       await router.push({ name: LoginRoute.name })
     }
 
@@ -51,7 +54,7 @@ export default defineComponent({
         return
       }
       sendGlobalChatMessage(`Importing world from ${result.file.name}`)
-      importFromEelvl(result.data)
+      await importFromEelvl(result.data)
     }
 
     async function onPwlvlFileChange(event: Event) {
@@ -60,7 +63,7 @@ export default defineComponent({
         return
       }
       sendGlobalChatMessage(`Importing world from ${result.file.name}`)
-      importFromPwlvl(result.data)
+      await importFromPwlvl(result.data)
     }
 
     return {

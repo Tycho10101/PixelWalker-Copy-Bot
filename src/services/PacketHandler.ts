@@ -27,6 +27,11 @@ import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from 
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
+import { PWApiClient, PWGameClient } from 'pw-js-api/esm'
+import { pwAuthenticate, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
+import { PWGameWorldHelper } from 'pw-js-world/esm'
+import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
+import { GENERAL_CONSTANTS } from '@/constants/general.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -72,10 +77,64 @@ async function playerChatPacketReceived(data: PlayerChatPacket) {
     case '.test':
       await testCommandReceived(args, playerId)
       break
+    case '.import':
+      await importCommandReceived(args, playerId)
+      break
     default:
       if (args[0].startsWith('.')) {
         sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
       }
+  }
+}
+
+async function importCommandReceived(args: string[], playerId: number) {
+  if (args.length < 2) {
+    sendPrivateChatMessage('ERROR! Correct usage is .import world_id', playerId)
+    return
+  }
+
+  const worldId = args[1]
+
+  if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
+    return
+  }
+
+  const pwApiClient = new PWApiClient(usePWClientStore().email, usePWClientStore().password)
+
+  try {
+    await pwAuthenticate(pwApiClient)
+  } catch (e) {
+    sendPrivateChatMessage((e as Error).message, playerId)
+    console.error(e)
+    return
+  }
+
+  const pwGameClient = new PWGameClient(pwApiClient)
+  const pwGameWorldHelper = new PWGameWorldHelper()
+
+  pwGameClient
+    .addHook(pwGameWorldHelper.receiveHook)
+    .addCallback('playerInitPacket', async (_data: PlayerInitPacket) => {
+      try {
+        pwGameClient.send('playerInitReceived')
+        const blocks = pwGameWorldHelper.sectionBlocks(0, 0, pwGameWorldHelper.width - 1, pwGameWorldHelper.height - 1)
+        sendGlobalChatMessage(`Importing world from ${worldId}`)
+        await pwClearWorld()
+        await importFromPwlvl(blocks.toBuffer())
+      } catch (e) {
+        console.error(e)
+        sendPrivateChatMessage(GENERAL_CONSTANTS.GENERIC_ERROR, playerId)
+      } finally {
+        pwGameClient.disconnect(false)
+      }
+    })
+
+  try {
+    await pwJoinWorld(pwGameClient, worldId)
+  } catch (e) {
+    sendPrivateChatMessage((e as Error).message, playerId)
+    console.error(e)
+    return
   }
 }
 
@@ -356,25 +415,21 @@ function selectBlocks(
   sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
 }
 
-function hasWorldImportFinished(data: WorldBlockPlacedPacket) {
+function updateWorldImportFinished(data: WorldBlockPlacedPacket) {
   // Not really reliable, but good enough
   if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport > 0) {
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport -= data.positions.length
     if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport <= 0) {
       usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
-      return true
     }
   }
-  return false
 }
 
 function worldBlockPlacedPacketReceived(
   data: WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
-  if (hasWorldImportFinished(data)) {
-    sendGlobalChatMessage('Finished importing eelvl file.')
-  }
+  updateWorldImportFinished(data)
 
   if (data.playerId === getPwGameWorldHelper().botPlayerId) {
     return

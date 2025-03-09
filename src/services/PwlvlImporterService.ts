@@ -8,14 +8,19 @@ export function getImportedFromPwlvlData(fileData: ArrayBuffer): DeserialisedStr
   return StructureHelper.read(Buffer.from(fileData))
 }
 
-export function importFromPwlvl(fileData: ArrayBuffer) {
+export async function importFromPwlvl(fileData: ArrayBuffer) {
   try {
     const worldData = getImportedFromPwlvlData(fileData)
 
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = worldData.width * worldData.height * 2
-    placeWorldDataBlocks(worldData, vec2(0, 0))
+    const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
+    if (success) {
+      sendGlobalChatMessage('Finished importing world.')
+    } else {
+      sendGlobalChatMessage('[ERROR] Failed to import world.')
+    }
   } catch (e) {
-    console.log(e)
+    console.error(e)
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
     sendGlobalChatMessage('Unknown error occurred while importing pwlvl file.')
   }

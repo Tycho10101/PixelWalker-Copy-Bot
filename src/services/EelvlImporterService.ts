@@ -64,14 +64,19 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
   return new DeserialisedStructure(pwBlock3DArray, { width: pwMapWidth, height: pwMapHeight })
 }
 
-export function importFromEelvl(fileData: ArrayBuffer) {
+export async function importFromEelvl(fileData: ArrayBuffer) {
   try {
     const worldData = getImportedFromEelvlData(fileData)
 
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = worldData.width * worldData.height * 2
-    placeWorldDataBlocks(worldData, vec2(0, 0))
+    const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
+    if (success) {
+      sendGlobalChatMessage('Finished importing world.')
+    } else {
+      sendGlobalChatMessage('[ERROR] Failed to import world.')
+    }
   } catch (e) {
-    console.log(e)
+    console.error(e)
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = 0
     sendGlobalChatMessage('Unknown error occurred while importing eelvl file.')
   }

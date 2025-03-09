@@ -5,10 +5,10 @@ import { VForm } from 'vuetify/components'
 import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { useRouter } from 'vue-router'
 import { MessageService } from '@/services/MessageService.ts'
-import { GENERAL_CONSTANTS } from '@/constants/general.ts'
 import { BotInfoRoute } from '@/router/routes.ts'
 import { registerCallbacks } from '@/services/PacketHandler.ts'
 import { getReversedRecord } from '@/utils/reverse_record.ts'
+import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
 
 export default defineComponent({
   setup() {
@@ -23,42 +23,21 @@ export default defineComponent({
 
     const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
 
-    async function authenticate(): Promise<boolean> {
-      const authenticationResult = await getPwApiClient().authenticate()
-
-      if ('token' in authenticationResult) {
-        return true
-      }
-
-      if ('message' in authenticationResult) {
-        MessageService.error(authenticationResult.message)
-      } else {
-        MessageService.error(GENERAL_CONSTANTS.GENERIC_ERROR)
-      }
-
-      return false
-    }
-
-    async function joinWorld(): Promise<boolean> {
-      try {
-        await getPwGameClient().joinWorld(worldId.value)
-
-        return true
-      } catch (e) {
-        MessageService.error('Failed to join world. ' + (e as Error).message)
-        return false
-      }
-    }
-
     async function onConnectButtonClick() {
       PWClientStore.worldId = worldId.value
+      PWClientStore.email = email.value
+      PWClientStore.password = password.value
       if (!(await form.value!.validate()).valid) {
         return
       }
 
       PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
 
-      if (!(await authenticate())) {
+      try {
+        await pwAuthenticate(getPwApiClient())
+      } catch (e) {
+        MessageService.error((e as Error).message)
+        console.error(e)
         return
       }
 
@@ -66,7 +45,11 @@ export default defineComponent({
 
       registerCallbacks()
 
-      if (!(await joinWorld())) {
+      try {
+        await pwJoinWorld(getPwGameClient(), worldId.value)
+      } catch (e) {
+        MessageService.error((e as Error).message)
+        console.error(e)
         return
       }
 
