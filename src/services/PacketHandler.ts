@@ -10,9 +10,9 @@ import {
   Block,
   BlockArgsHeadings,
   ComponentTypeHeader,
-  LayerType,
   createBlockPacket,
   IPlayer,
+  LayerType,
   Point,
   SendableBlockPacket,
 } from 'pw-js-world'

@@ -64,7 +64,7 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
   return new DeserialisedStructure(pwBlock3DArray, { width: pwMapWidth, height: pwMapHeight })
 }
 
-export async function importFromEelvl(fileData: ArrayBuffer) {
+export function importFromEelvl(fileData: ArrayBuffer) {
   try {
     const worldData = getImportedFromEelvlData(fileData)
 

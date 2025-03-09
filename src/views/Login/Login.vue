@@ -40,9 +40,9 @@ export default defineComponent({
           <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>
         </v-row>
         <v-row>
-          <PiButton v-if="showSetDefaultWorldIdButton" @click="setDefaultWorldIdButtonClicked" color="blue"
-            >Set default world id</PiButton
-          >
+          <PiButton v-if="devViewEnabled" @click="setDefaultWorldIdButtonClicked" color="blue"
+            >Set default world id
+          </PiButton>
         </v-row>
       </v-col>
     </v-form>

@@ -21,7 +21,7 @@ export default defineComponent({
     const router = useRouter()
     const PWClientStore = usePWClientStore()
 
-    const showSetDefaultWorldIdButton = computed(() => import.meta.env.VITE_SHOW_SET_DEFAULT_WORLD_ID_BUTTON === 'TRUE')
+    const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
 
     async function authenticate(): Promise<boolean> {
       const authenticationResult = await getPwApiClient().authenticate()
@@ -87,7 +87,7 @@ export default defineComponent({
       loading,
       form,
       onConnectButtonClick,
-      showSetDefaultWorldIdButton,
+      devViewEnabled,
       setDefaultWorldIdButtonClicked,
     }
   },

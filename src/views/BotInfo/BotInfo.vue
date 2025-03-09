@@ -45,13 +45,38 @@ export default defineComponent({
         <PiButton
           :loading="loading.loadingExport.value"
           color="blue"
-          @click="withLoading(loading.loadingExport, onExportButtonClick)"
+          @click="withLoading(loading.loadingExport, onExportEelvlButtonClick)"
           >Export to EELVL
         </PiButton>
       </v-row>
       <v-row>
-        <input ref="importEelvlFileInput" accept=".eelvl" style="display: none" type="file" @change="onFileChange" />
-        <PiButton color="blue" @click="onImportButtonClick">Import from EELVL</PiButton>
+        <input
+          ref="importEelvlFileInput"
+          accept=".eelvl"
+          style="display: none"
+          type="file"
+          @change="onEelvlFileChange"
+        />
+        <PiButton color="blue" @click="onImportEelvlButtonClick">Import from EELVL</PiButton>
+      </v-row>
+      <v-row>
+        <PiButton
+          v-if="devViewEnabled"
+          :loading="loading.loadingExport.value"
+          color="blue"
+          @click="withLoading(loading.loadingExport, onExportPwlvlButtonClick)"
+          >Export to PWLVL
+        </PiButton>
+      </v-row>
+      <v-row>
+        <input
+          ref="importPwlvlFileInput"
+          accept=".pwlvl"
+          style="display: none"
+          type="file"
+          @change="onPwlvlFileChange"
+        />
+        <PiButton v-if="devViewEnabled" color="blue" @click="onImportPwlvlButtonClick">Import from PWLVL</PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>

@@ -19,7 +19,7 @@ function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: numbe
   }
 }
 
-export function getExportedToEelvlData() {
+export function getExportedToEelvlData(): [Buffer, string] {
   const worldMeta = getPwGameWorldHelper().meta!
   const world: EelvlFileHeader = {
     ownerName: worldMeta.owner ?? 'Unknown',

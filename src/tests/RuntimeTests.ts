@@ -1,9 +1,9 @@
 import everyBlockEelvlFile from '@/tests/resources/every-block.eelvl?url'
-import everyBlockEelvlJsonFile from '@/tests/resources/every-block-eelvl.json?url'
+import everyBlockExportedEelvlPwlvlFile from '@/tests/resources/every-block-exported-eelvl.pwlvl?url'
 import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
-import { StructureHelper } from 'pw-js-world'
 import { deepStrictEqual } from 'node:assert'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
+import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
 
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')
@@ -26,22 +26,22 @@ export async function performRuntimeTests() {
   sendGlobalChatMessage(`[TEST] ALL TESTS PASSED`)
 }
 
-export async function testImport() {
+async function testImport() {
   const everyBlockEelvlRaw = await fetch(everyBlockEelvlFile)
   const everyBlockEelvlArrayBuffer = await everyBlockEelvlRaw.arrayBuffer()
   const importedFromEelvlData = getImportedFromEelvlData(everyBlockEelvlArrayBuffer)
 
-  const everyBlockEelvlJsonRaw = await fetch(everyBlockEelvlJsonFile)
-  const everyBlockEelvlJsonJson = await everyBlockEelvlJsonRaw.json()
-  const parsedWorldData = StructureHelper.read(everyBlockEelvlJsonJson)
+  const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
+  const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
+  const importedFromPwlvlData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
 
-  deepStrictEqual(importedFromEelvlData.width, parsedWorldData.width)
-  deepStrictEqual(importedFromEelvlData.height, parsedWorldData.height)
+  deepStrictEqual(importedFromEelvlData.width, importedFromPwlvlData.width)
+  deepStrictEqual(importedFromEelvlData.height, importedFromPwlvlData.height)
   for (let layer = 0; layer < 2; layer++) {
     for (let x = 0; x < importedFromEelvlData.width; x++) {
       for (let y = 0; y < importedFromEelvlData.height; y++) {
         const importedBlock = importedFromEelvlData.blocks[layer][x][y]
-        const parsedBlock = parsedWorldData.blocks[layer][x][y]
+        const parsedBlock = importedFromPwlvlData.blocks[layer][x][y]
         deepStrictEqual(
           importedBlock,
           parsedBlock,
