@@ -32,6 +32,7 @@ import { pwAuthenticate, pwCheckEdit, pwClearWorld, pwJoinWorld } from '@/servic
 import { PWGameWorldHelper } from 'pw-js-world/esm'
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/General.ts'
+import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -97,7 +98,7 @@ async function importCommandReceived(args: string[], playerId: number) {
     return
   }
 
-  const worldId = args[1]
+  const worldId = getWorldIdIfUrl(args[1])
 
   if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
     return

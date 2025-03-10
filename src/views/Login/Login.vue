@@ -34,7 +34,14 @@ export default defineComponent({
           <PiTextField v-model="password" :required="true" label="Password" type="password"></PiTextField>
         </v-row>
         <v-row>
-          <PiTextField v-model="worldId" :required="true" label="World ID"></PiTextField>
+          <PiTextField
+            v-model="worldId"
+            :required="true"
+            label="World ID"
+            @input="onWorldIdChange"
+            hint="World ID or World URL"
+          >
+          </PiTextField>
         </v-row>
         <v-row>
           <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>

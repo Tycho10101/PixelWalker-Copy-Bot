@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-03-10 Version 1.0.3
+- Allow pasting world URL in world ID during login
+
 2025-03-10 Version 1.0.2
 - Updated usage info section
 - World name and game URL is shown, when bot is connected

@@ -9,6 +9,7 @@ import { BotInfoRoute } from '@/router/Routes.ts'
 import { registerCallbacks } from '@/services/PacketHandlerService.ts'
 import { getReversedRecord } from '@/utils/ReverseRecord.ts'
 import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
+import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
 
 export default defineComponent({
   setup() {
@@ -63,6 +64,10 @@ export default defineComponent({
       worldId.value = import.meta.env.VITE_DEFAULT_WORLD_ID
     }
 
+    function onWorldIdChange() {
+      worldId.value = getWorldIdIfUrl(worldId.value)
+    }
+
     return {
       email,
       password,
@@ -72,6 +77,7 @@ export default defineComponent({
       onConnectButtonClick,
       devViewEnabled,
       setDefaultWorldIdButtonClicked,
+      onWorldIdChange,
     }
   },
 })
