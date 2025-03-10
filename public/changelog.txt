@@ -1,5 +1,9 @@
 PixelWalker copy bot changelog
 
+2025-03-10 Version 1.0.2
+- Updated usage info section
+- World name and game URL is shown, when bot is connected
+
 2025-03-09 Version 1.0.1
 - Bot prints error message, when user or bot tries to use command/action that requires edit permissions, but user or bot does not have edit permissions
 

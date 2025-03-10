@@ -1,5 +1,5 @@
 import { computed, defineComponent, ref } from 'vue'
-import { getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { LoginRoute } from '@/router/Routes.ts'
 import { useRouter } from 'vue-router'
 import { exportToEelvl } from '@/services/EelvlExporterService.ts'
@@ -20,6 +20,9 @@ export default defineComponent({
     const importPwlvlFileInput = ref<HTMLInputElement>()
 
     const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
+
+    const worldId = ref<string>(PWClientStore.worldId)
+    const worldName = ref<string>(getPwGameWorldHelper().meta?.title)
 
     async function onDisconnectButtonClick() {
       getPwGameClient().disconnect(false)
@@ -78,6 +81,8 @@ export default defineComponent({
       devViewEnabled,
       importEelvlFileInput,
       importPwlvlFileInput,
+      worldId,
+      worldName,
     }
   },
 })

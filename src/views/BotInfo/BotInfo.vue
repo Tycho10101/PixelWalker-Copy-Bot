@@ -21,7 +21,14 @@ export default defineComponent({
 <template>
   <PiCardContainer>
     <v-col>
-      <v-row><h3>Connected!</h3></v-row>
+      <v-row>
+        <h3>Connected to {{ `'${worldName}'` }}</h3>
+      </v-row>
+      <v-row>
+        <a :href="`https://pixelwalker.net/world/${worldId}`" target="_blank">{{
+          `https://pixelwalker.net/world/${worldId}`
+        }}</a></v-row
+      >
       <v-row>
         <PiButton
           :loading="loading.loadingDisconnect.value"
@@ -35,8 +42,11 @@ export default defineComponent({
   <PiCardContainer>
     <v-col>
       <v-row><h3>Usage info</h3></v-row>
-      <v-row> Select area to copy - gold coin</v-row>
-      <v-row> Paste selected area - blue coin</v-row>
+      <v-row>Type .help in world to learn usage.</v-row>
+      <v-row
+        >Bot runs fully in browser. So for best experience, keep this tab focused if possible. Otherwise, browser may
+        decide to throttle the bot, which may lead to bot becoming unresponsive.
+      </v-row>
     </v-col>
   </PiCardContainer>
   <PiCardContainer>
