@@ -1,6 +1,6 @@
 import { computed, defineComponent, ref } from 'vue'
 import { getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
-import { LoginRoute } from '@/router/routes.ts'
+import { LoginRoute } from '@/router/Routes.ts'
 import { useRouter } from 'vue-router'
 import { exportToEelvl } from '@/services/EelvlExporterService.ts'
 import { importFromEelvl } from '@/services/EelvlImporterService.ts'

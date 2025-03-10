@@ -1,7 +1,7 @@
 import App from '@/App.vue'
-import { createVuetify } from '@/plugins/vuetify.ts'
+import { createVuetify } from '@/plugins/Vuetify.ts'
 import { createPinia } from 'pinia'
-import { createRouter } from '@/router/router'
+import { createRouter } from '@/router/Router.ts'
 import { createApp } from 'vue'
 
 const vuetify = createVuetify()

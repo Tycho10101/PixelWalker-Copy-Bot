@@ -5,9 +5,9 @@ import { VForm } from 'vuetify/components'
 import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { useRouter } from 'vue-router'
 import { MessageService } from '@/services/MessageService.ts'
-import { BotInfoRoute } from '@/router/routes.ts'
-import { registerCallbacks } from '@/services/PacketHandler.ts'
-import { getReversedRecord } from '@/utils/reverse_record.ts'
+import { BotInfoRoute } from '@/router/Routes.ts'
+import { registerCallbacks } from '@/services/PacketHandlerService.ts'
+import { getReversedRecord } from '@/utils/ReverseRecord.ts'
 import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
 
 export default defineComponent({

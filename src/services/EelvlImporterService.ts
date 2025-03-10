@@ -12,7 +12,7 @@ import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
 import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
-import { TOTAL_EELVL_LAYERS } from '@/constants/general.ts'
+import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
 
 export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const bytes = new ByteArray(new Uint8Array(fileData))

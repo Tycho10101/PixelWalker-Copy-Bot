@@ -1,5 +1,5 @@
 import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { GENERAL_CONSTANTS, TOTAL_PW_LAYERS } from '@/constants/general.ts'
+import { GENERAL_CONSTANTS, TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { Block, DeserialisedStructure, PWGameWorldHelper } from 'pw-js-world'
 import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'

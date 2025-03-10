@@ -4,7 +4,7 @@ import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
 import { deepStrictEqual } from 'node:assert'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
-import { TOTAL_EELVL_LAYERS } from '@/constants/general.ts'
+import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
 
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')

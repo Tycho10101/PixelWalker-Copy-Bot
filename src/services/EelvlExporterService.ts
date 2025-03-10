@@ -10,7 +10,7 @@ import { EelvlFileHeader } from '@/types/WorldData.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { getBlockName } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
-import { TOTAL_EELVL_LAYERS } from '@/constants/general.ts'
+import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
 
 function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: number, y: number) {
   if (!blocks.has(key)) {

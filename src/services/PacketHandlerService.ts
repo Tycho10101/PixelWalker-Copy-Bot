@@ -31,7 +31,7 @@ import { PWApiClient, PWGameClient } from 'pw-js-api/esm'
 import { pwAuthenticate, pwCheckEdit, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
 import { PWGameWorldHelper } from 'pw-js-world/esm'
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
-import { GENERAL_CONSTANTS } from '@/constants/general.ts'
+import { GENERAL_CONSTANTS } from '@/constants/General.ts'
 
 export function registerCallbacks() {
   getPwGameClient()

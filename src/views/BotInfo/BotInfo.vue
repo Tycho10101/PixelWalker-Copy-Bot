@@ -4,7 +4,7 @@ import BotInfo from './BotInfo.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
-import { withLoading } from '@/services/LoaderProxy.ts'
+import { withLoading } from '@/services/LoaderProxyService.ts'
 
 export default defineComponent({
   methods: { withLoading },

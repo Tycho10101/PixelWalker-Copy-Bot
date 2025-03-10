@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
-import * as Routes from './routes'
+import * as Routes from './Routes.ts'
 import { usePWClientStore } from '@/stores/PWClientStore.ts'
 
 const buildRouter = () => {

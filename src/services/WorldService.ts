@@ -8,8 +8,8 @@ import {
 } from '@/stores/PWClientStore.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
-import { sleep } from '@/utils/sleep.ts'
-import { TOTAL_PW_LAYERS } from '@/constants/general.ts'
+import { sleep } from '@/utils/Sleep.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
