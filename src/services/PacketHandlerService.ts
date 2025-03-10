@@ -151,6 +151,11 @@ async function testCommandReceived(_args: string[], playerId: number) {
     return
   }
 
+  if (getPwGameWorldHelper().width !== 636 && getPwGameWorldHelper().height !== 50) {
+    sendPrivateChatMessage('ERROR! To perform tests, world must be 636x50 size.', playerId)
+    return false
+  }
+
   await performRuntimeTests()
 }
 
