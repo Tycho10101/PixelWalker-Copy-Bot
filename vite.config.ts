@@ -15,6 +15,7 @@ export default defineConfig(() => {
       tsconfigPaths(),
       nodePolyfills(),
       eslint(),
+      // TODO: use checker
       // checker({
       //   typescript: true,
       // }),
