@@ -14,7 +14,7 @@ import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
     return getPwGameWorldHelper().getBlockAt(pos.x, pos.y, layer)
-  } catch (e) {
+  } catch {
     return new Block(0)
   }
 }
@@ -31,7 +31,7 @@ export async function placeWorldDataBlocks(worldData: DeserialisedStructure, pos
   return await placePackets(packets, worldData.width * worldData.height * TOTAL_PW_LAYERS)
 }
 
-function placePackets(packets: SendableBlockPacket[], blockCount: number): Promise<boolean> {
+async function placePackets(packets: SendableBlockPacket[], blockCount: number): Promise<boolean> {
   // TODO: use packet count instead of block count
   usePWClientStore().totalBlocksLeftToReceiveFromWorldImport = blockCount
   let lastTotalBlocksLeftToReceiveFromWorldImportValue = usePWClientStore().totalBlocksLeftToReceiveFromWorldImport
@@ -40,26 +40,24 @@ function placePackets(packets: SendableBlockPacket[], blockCount: number): Promi
     placeBlockPacket(packet)
   }
 
-  return new Promise(async (resolve) => {
-    const TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR = 10
-    let total_attempts = 0
-    while (total_attempts < TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR) {
-      if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === 0) {
-        resolve(true)
-      }
-
-      if (
-        usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === lastTotalBlocksLeftToReceiveFromWorldImportValue
-      ) {
-        total_attempts++
-      }
-
-      lastTotalBlocksLeftToReceiveFromWorldImportValue = usePWClientStore().totalBlocksLeftToReceiveFromWorldImport
-
-      await sleep(1000)
+  const TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR = 10
+  let total_attempts = 0
+  while (total_attempts < TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR) {
+    if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === 0) {
+      return true
     }
-    resolve(false)
-  })
+
+    if (
+      usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === lastTotalBlocksLeftToReceiveFromWorldImportValue
+    ) {
+      total_attempts++
+    }
+
+    lastTotalBlocksLeftToReceiveFromWorldImportValue = usePWClientStore().totalBlocksLeftToReceiveFromWorldImport
+
+    await sleep(1000)
+  }
+  return false
 }
 
 export function placeBlockPacket(blockPacket: SendableBlockPacket) {

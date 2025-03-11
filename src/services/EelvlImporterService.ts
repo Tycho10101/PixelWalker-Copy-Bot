@@ -1572,7 +1572,7 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
         default:
           return createBlock(PwBlockName.EMPTY)
       }
-    default:
+    default: {
       const eelvlBlockName = EelvlBlockId[eelvlBlock.blockId]
       if (eelvlBlockName === undefined) {
         return createMissingBlockSign(`Unknown Block ID: ${eelvlBlock.blockId}`)
@@ -1583,6 +1583,7 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
       }
 
       return createBlock(pwBlockName)
+    }
   }
 }
 

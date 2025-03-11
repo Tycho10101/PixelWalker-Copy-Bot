@@ -12,12 +12,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "pw-js-api/*": [
-        "./node_modules/pw-js-api/*"
-      ],
-      "pw-js-world/*": [
-        "./node_modules/pw-js-world/*"
       ]
     },
     /* Bundler mode */

@@ -1,4 +1,4 @@
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
@@ -23,6 +23,10 @@ export default defineComponent({
     const PWClientStore = usePWClientStore()
 
     const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
+
+    watch(worldId, () => {
+      worldId.value = getWorldIdIfUrl(worldId.value)
+    })
 
     async function onConnectButtonClick() {
       PWClientStore.worldId = worldId.value
@@ -64,10 +68,6 @@ export default defineComponent({
       worldId.value = import.meta.env.VITE_DEFAULT_WORLD_ID
     }
 
-    function onWorldIdChange() {
-      worldId.value = getWorldIdIfUrl(worldId.value)
-    }
-
     return {
       email,
       password,
@@ -77,7 +77,6 @@ export default defineComponent({
       onConnectButtonClick,
       devViewEnabled,
       setDefaultWorldIdButtonClicked,
-      onWorldIdChange,
     }
   },
 })

@@ -82,48 +82,12 @@ export class ByteArray {
     return this.length - this.hashposition
   }
 
-  /**
-   * Reads a buffer function
-   */
-  private hashreadBufferFunc(
-    func:
-      | 'readDouble'
-      | 'readFloat'
-      | 'readInt32'
-      | 'readBigInt64'
-      | 'readInt16'
-      | 'readUInt32'
-      | 'readUInt16'
-      | 'readBigUInt64',
-    pos: number,
-  ): any {
-    const value = this.buffer[`${func}${this.hashendian}`](this.hashposition)
-
-    this.hashposition += pos
-
-    return value
+  static compressor(buf: InputType, options?: ZlibOptions) {
+    return deflateRawSync(buf, options)
   }
 
-  /**
-   * Writes a buffer function
-   */
-  private hashwriteBufferFunc(
-    value: number | bigint,
-    func:
-      | 'writeDouble'
-      | 'writeFloat'
-      | 'writeInt32'
-      | 'writeBigInt64'
-      | 'writeInt16'
-      | 'writeUInt32'
-      | 'writeUInt16'
-      | 'writeBigUInt64',
-    pos: number,
-  ) {
-    this.hashexpand(pos)
-
-    this.buffer[`${func}${this.hashendian}`](value as never, this.hashposition)
-    this.hashposition += pos
+  static uncompressor(buf: InputType, options?: ZlibOptions) {
+    return inflateRawSync(buf, options)
   }
 
   //#region ok
@@ -157,10 +121,6 @@ export class ByteArray {
 
     this.buffer = deflateRawSync(this.buffer)
     this.hashposition = this.length
-  }
-
-  static compressor(buf: InputType, options?: ZlibOptions) {
-    return deflateRawSync(buf, options)
   }
 
   /**
@@ -238,7 +198,9 @@ export class ByteArray {
         (charset === 'utf8' || charset === 'utf-8') && b.length >= 3 && b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf
       const value = decode(b, charset, { stripBOM })
 
-      stripBOM ? (length -= 3) : 0
+      if (stripBOM) {
+        length -= 3
+      }
 
       if (Buffer.byteLength(value) !== length) {
         throw new RangeError('End of buffer was encountered.')
@@ -323,10 +285,6 @@ export class ByteArray {
     this.hashposition = 0
   }
 
-  static uncompressor(buf: InputType, options?: ZlibOptions) {
-    return inflateRawSync(buf, options)
-  }
-
   /**
    * Writes a boolean (internally a 0 or 1)
    */
@@ -346,7 +304,7 @@ export class ByteArray {
   /**
    * Writes multiple signed bytes to a ByteArray
    */
-  writeBytes(bytes: ByteArray | Buffer | Array<any>, offset: number = 0, length: number = 0): void {
+  writeBytes(bytes: ByteArray | Buffer, offset: number = 0, length: number = 0): void {
     if (length === 0) {
       length = bytes.length - offset
     }
@@ -355,13 +313,11 @@ export class ByteArray {
 
     for (let i = 0; i < length; i++) {
       this.buffer[i + this.hashposition] =
-        Buffer.isBuffer(bytes) || bytes instanceof Array ? bytes[i + offset] : bytes.buffer[i + offset]
+        Buffer.isBuffer(bytes) ? bytes[i + offset] : bytes.buffer[i + offset]
     }
 
     this.hashposition += length
   }
-
-  //#endregion
 
   /**
    * Writes a double
@@ -376,6 +332,8 @@ export class ByteArray {
   writeFloat(value: number): void {
     this.hashwriteBufferFunc(value, 'writeFloat', 4)
   }
+
+  //#endregion
 
   /**
    * Writes a signed int
@@ -451,5 +409,49 @@ export class ByteArray {
    */
   writeUTFBytes(value: string): void {
     this.writeMultiByte(value)
+  }
+
+  /**
+   * Reads a buffer function
+   */
+  private hashreadBufferFunc(
+    func:
+      | 'readDouble'
+      | 'readFloat'
+      | 'readInt32'
+      | 'readBigInt64'
+      | 'readInt16'
+      | 'readUInt32'
+      | 'readUInt16'
+      | 'readBigUInt64',
+    pos: number,
+  ): number | bigint {
+    const value = this.buffer[`${func}${this.hashendian}`](this.hashposition)
+
+    this.hashposition += pos
+
+    return value
+  }
+
+  /**
+   * Writes a buffer function
+   */
+  private hashwriteBufferFunc(
+    value: number | bigint,
+    func:
+      | 'writeDouble'
+      | 'writeFloat'
+      | 'writeInt32'
+      | 'writeBigInt64'
+      | 'writeInt16'
+      | 'writeUInt32'
+      | 'writeUInt16'
+      | 'writeBigUInt64',
+    pos: number,
+  ) {
+    this.hashexpand(pos)
+
+    this.buffer[`${func}${this.hashendian}`](value as never, this.hashposition)
+    this.hashposition += pos
   }
 }

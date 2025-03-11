@@ -1,11 +1,5 @@
-import {
-  PlayerChatPacket,
-  PlayerInitPacket,
-  PlayerJoinedPacket,
-  WorldBlockPlacedPacket,
-} from 'pw-js-api/esm/gen/world_pb'
+import { PlayerChatPacket, PlayerJoinedPacket, WorldBlockPlacedPacket } from 'pw-js-api/esm/gen/world_pb'
 import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
-import { BlockNames } from 'pw-js-api'
 import {
   Block,
   BlockArgsHeadings,
@@ -14,6 +8,7 @@ import {
   IPlayer,
   LayerType,
   Point,
+  PWGameWorldHelper,
   SendableBlockPacket,
 } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
@@ -27,9 +22,8 @@ import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from 
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
-import { PWApiClient, PWGameClient } from 'pw-js-api/esm'
+import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { pwAuthenticate, pwCheckEdit, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
-import { PWGameWorldHelper } from 'pw-js-world/esm'
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { GENERAL_CONSTANTS } from '@/constants/General.ts'
 import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
@@ -45,7 +39,10 @@ export function registerCallbacks() {
 }
 
 function playerJoinedPacketReceived(data: PlayerJoinedPacket) {
-  const playerId = data.properties?.playerId!
+  const playerId = data.properties?.playerId
+  if (!playerId) {
+    return
+  }
   if (!getPlayerBotData()[playerId]) {
     getPlayerBotData()[playerId] = createBotData()
   }
@@ -117,22 +114,20 @@ async function importCommandReceived(args: string[], playerId: number) {
   const pwGameClient = new PWGameClient(pwApiClient)
   const pwGameWorldHelper = new PWGameWorldHelper()
 
-  pwGameClient
-    .addHook(pwGameWorldHelper.receiveHook)
-    .addCallback('playerInitPacket', async (_data: PlayerInitPacket) => {
-      try {
-        pwGameClient.send('playerInitReceived')
-        const blocks = pwGameWorldHelper.sectionBlocks(0, 0, pwGameWorldHelper.width - 1, pwGameWorldHelper.height - 1)
-        sendGlobalChatMessage(`Importing world from ${worldId}`)
-        await pwClearWorld()
-        await importFromPwlvl(blocks.toBuffer())
-      } catch (e) {
-        console.error(e)
-        sendPrivateChatMessage(GENERAL_CONSTANTS.GENERIC_ERROR, playerId)
-      } finally {
-        pwGameClient.disconnect(false)
-      }
-    })
+  pwGameClient.addHook(pwGameWorldHelper.receiveHook).addCallback('playerInitPacket', async () => {
+    try {
+      pwGameClient.send('playerInitReceived')
+      const blocks = pwGameWorldHelper.sectionBlocks(0, 0, pwGameWorldHelper.width - 1, pwGameWorldHelper.height - 1)
+      sendGlobalChatMessage(`Importing world from ${worldId}`)
+      await pwClearWorld()
+      await importFromPwlvl(blocks.toBuffer())
+    } catch (e) {
+      console.error(e)
+      sendPrivateChatMessage(GENERAL_CONSTANTS.GENERIC_ERROR, playerId)
+    } finally {
+      pwGameClient.disconnect(false)
+    }
+  })
 
   try {
     await pwJoinWorld(pwGameClient, worldId)
@@ -297,7 +292,7 @@ function pasteCommandReceived(args: string[], playerId: number, smartPaste: bool
   sendPrivateChatMessage(`Next paste will be repeated ${repeatX}x${repeatY} times`, playerId)
 }
 
-function playerInitPacketReceived(_data: PlayerInitPacket) {
+function playerInitPacketReceived() {
   getPwGameClient().send('playerInitReceived')
 }
 
@@ -316,8 +311,9 @@ function applySmartTransformForBlocks(
     const blockCopy = cloneDeep(pastedBlock)
 
     if (pastePosBlock.block.bId === nextBlockX.block.bId || pastePosBlock.block.bId === nextBlockY.block.bId) {
-      // TODO: fix it so it doesn't break with new block IDs (wait for library update)
-      const blockArgTypes: ComponentTypeHeader[] = (BlockArgsHeadings as any)[BlockNames[pastePosBlock.block.bId]] ?? []
+      const pastedBlockName = getBlockName(pastePosBlock.block.bId)
+      const blockArgTypes: ComponentTypeHeader[] =
+        (BlockArgsHeadings as Record<string, ComponentTypeHeader[]>)[pastedBlockName] ?? []
       for (let i = 0; i < blockArgTypes.length; i++) {
         const blockArgType = blockArgTypes[i]
         if (blockArgType === ComponentTypeHeader.Int32) {
@@ -512,7 +508,7 @@ function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, to
   if (fromPos.y > toPos.y) {
     ;[fromPos.y, toPos.y] = [toPos.y, fromPos.y]
   }
-  let data: WorldBlock[] = []
+  const data: WorldBlock[] = []
   for (let x = 0; x <= toPos.x - fromPos.x; x++) {
     for (let y = 0; y <= toPos.y - fromPos.y; y++) {
       const sourcePos = vec2.add(fromPos, vec2(x, y))

@@ -38,7 +38,6 @@ export default defineComponent({
             v-model="worldId"
             :required="true"
             label="World ID"
-            @input="onWorldIdChange"
             hint="World ID or World URL"
           >
           </PiTextField>

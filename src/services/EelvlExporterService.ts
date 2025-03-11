@@ -11,8 +11,9 @@ import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { getBlockName } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { EelvlBlockEntry } from '@/types/EelvlBlockEntry.ts'
 
-function addBlocksEntry(blocks: ManyKeysMap<any[], vec2[]>, key: any[], x: number, y: number) {
+function addBlocksEntry(blocks: ManyKeysMap<EelvlBlockEntry, vec2[]>, key: EelvlBlockEntry, x: number, y: number) {
   if (!blocks.has(key)) {
     blocks.set(key, [vec2(x, y)])
   } else {
@@ -52,7 +53,7 @@ export function getExportedToEelvlData(): [Buffer, string] {
   bytes.writeBoolean(world.minimapEnabled)
   bytes.writeUTF(world.ownerId)
 
-  let blocks = new ManyKeysMap()
+  const blocks = new ManyKeysMap<EelvlBlockEntry, vec2[]>()
   for (let layer: number = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
     for (let y: number = 0; y < getPwGameWorldHelper().height; y++) {
       for (let x: number = 0; x < getPwGameWorldHelper().width; x++) {
@@ -65,7 +66,7 @@ export function getExportedToEelvlData(): [Buffer, string] {
           continue
         }
 
-        const blockEntryKey = getBlockEntryKey(eelvlBlockId, eelvlBlock, eelvlLayer)
+        const blockEntryKey: EelvlBlockEntry = getBlockEntryKey(eelvlBlockId, eelvlBlock, eelvlLayer)
         for (const key of blockEntryKey) {
           if (typeof key !== 'string' && typeof key !== 'number') {
             console.error(`Unexpected type in key. x: ${x}, y: ${y} Value: ${key}, type: ${typeof key}`)
@@ -77,8 +78,8 @@ export function getExportedToEelvlData(): [Buffer, string] {
   }
 
   for (const [keys, positions] of blocks) {
-    const eelvlBlockId: number = keys[0]
-    const eelvlLayer: number = keys[1]
+    const eelvlBlockId: number = keys[0] as number
+    const eelvlLayer: number = keys[1] as number
     bytes.writeInt(eelvlBlockId)
     bytes.writeInt(eelvlLayer)
     writePositionsByteArrays(bytes, positions)
@@ -116,11 +117,11 @@ function mapLayerPwToEelvl(pwLayer: number) {
   }
 }
 
-function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLayer: number) {
+function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLayer: number): EelvlBlockEntry {
   return [eelvlBlockId, eelvlLayer, ...getBlockArgs(eelvlBlockId, eelvlBlock)]
 }
 
-function getBlockArgs(eelvlBlockId: number, eelvlBlock: EelvlBlock) {
+function getBlockArgs(eelvlBlockId: number, eelvlBlock: EelvlBlock): EelvlBlockEntry {
   switch (eelvlBlockId) {
     case EelvlBlockId.PORTAL:
     case EelvlBlockId.PORTAL_INVISIBLE:

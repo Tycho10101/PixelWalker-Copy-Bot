@@ -9,14 +9,12 @@ import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')
   const tests = [testImport]
-  let testsPassed = 0
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i]
     try {
       await test()
       const msg = `[TEST] ${i + 1}/${tests.length} PASSED ${test.name}`
       sendGlobalChatMessage(msg)
-      testsPassed += 1
     } catch (e) {
       const msg = `[TEST] ${i + 1}/${tests.length} FAILED ${test.name}`
       sendGlobalChatMessage(msg)

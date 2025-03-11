@@ -1170,7 +1170,7 @@ export enum EelvlBlockId {
   NPC_CRAB = 1579,
 }
 
-export function hasEelvlBlockOneIntParameter(eelvlBlockId: number): Boolean {
+export function hasEelvlBlockOneIntParameter(eelvlBlockId: number): boolean {
   return [
     EelvlBlockId.SCIFI_LASER_BLUE_CORNER_BOTTOMRIGHT,
     EelvlBlockId.SCIFI_LASER_BLUE_STRAIGHT_VERTICAL,
@@ -1326,7 +1326,7 @@ export function hasEelvlBlockOneIntParameter(eelvlBlockId: number): Boolean {
   ].includes(eelvlBlockId)
 }
 
-export function isEelvlNpc(eelvlBlockId: number): Boolean {
+export function isEelvlNpc(eelvlBlockId: number): boolean {
   return [
     EelvlBlockId.NPC_SMILE,
     EelvlBlockId.NPC_SAD,

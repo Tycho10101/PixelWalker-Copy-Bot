@@ -11,8 +11,8 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   const email = ref<string>('')
   const password = ref<string>('')
   const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
-  let blockMappings: Record<string, number> = {}
-  let blockMappingsReversed: Record<number, string> = {}
+  const blockMappings: Record<string, number> = {}
+  const blockMappingsReversed: Record<number, string> = {}
 
   const pwGameClient = computed<PWGameClient | undefined>(() => {
     if (!_pwApiClient) {
