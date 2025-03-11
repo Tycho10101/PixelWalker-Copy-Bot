@@ -1,5 +1,7 @@
 // @ts-check
 
+// Source: https://typescript-eslint.io/getting-started/typed-linting/
+
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 
