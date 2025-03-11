@@ -11,7 +11,7 @@ export function sendGlobalChatMessage(message: string) {
 function sendMessage(message: string) {
   let finalMessage = message
   if (finalMessage.length > 120) {
-    console.error('Message too long, max message length is 120 characters')
+    console.error(`ERROR! Trying to send message '${message}'. Message too long. Max message length is 120 characters`)
     finalMessage = 'ERROR! Message too long!'
   }
   getPwGameClient().send('playerChatPacket', {

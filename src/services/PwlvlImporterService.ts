@@ -10,21 +10,16 @@ export function getImportedFromPwlvlData(fileData: ArrayBuffer): DeserialisedStr
 }
 
 export async function importFromPwlvl(fileData: ArrayBuffer) {
-  try {
-    if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
-      return
-    }
+  if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
+    return
+  }
 
-    const worldData = getImportedFromPwlvlData(fileData)
+  const worldData = getImportedFromPwlvlData(fileData)
 
-    const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
-    if (success) {
-      sendGlobalChatMessage('Finished importing world.')
-    } else {
-      sendGlobalChatMessage('[ERROR] Failed to import world.')
-    }
-  } catch (e) {
-    console.error(e)
-    sendGlobalChatMessage('Unknown error occurred while importing pwlvl file.')
+  const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
+  if (success) {
+    sendGlobalChatMessage('Finished importing world.')
+  } else {
+    sendGlobalChatMessage('[ERROR] Failed to import world.')
   }
 }

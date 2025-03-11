@@ -4,7 +4,6 @@ import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { VForm } from 'vuetify/components'
 import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { useRouter } from 'vue-router'
-import { MessageService } from '@/services/MessageService.ts'
 import { BotInfoRoute } from '@/router/Routes.ts'
 import { registerCallbacks } from '@/services/PacketHandlerService.ts'
 import { getReversedRecord } from '@/utils/ReverseRecord.ts'
@@ -38,25 +37,13 @@ export default defineComponent({
 
       PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
 
-      try {
-        await pwAuthenticate(getPwApiClient())
-      } catch (e) {
-        MessageService.error((e as Error).message)
-        console.error(e)
-        return
-      }
+      await pwAuthenticate(getPwApiClient())
 
       PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
 
       registerCallbacks()
 
-      try {
-        await pwJoinWorld(getPwGameClient(), worldId.value)
-      } catch (e) {
-        MessageService.error((e as Error).message)
-        console.error(e)
-        return
-      }
+      await pwJoinWorld(getPwGameClient(), worldId.value)
 
       PWClientStore.blockMappings = await getPwApiClient().getMappings()
       PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)

@@ -1,7 +1,7 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
 import { EelvlBlockId, hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/enums/EelvlBlockId.ts'
 import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
-import { Block, LayerType } from 'pw-js-world'
+import { Block, DeserialisedStructure, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
 import { downloadFile } from '@/services/FileService.ts'
 import ManyKeysMap from 'many-keys-map'
@@ -12,6 +12,8 @@ import { getBlockName } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
 import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
 import { EelvlBlockEntry } from '@/types/EelvlBlockEntry.ts'
+import { getAllWorldBlocks } from '@/services/PWClientService.ts'
+import { GameError } from '@/classes/GameError.ts'
 
 function addBlocksEntry(blocks: ManyKeysMap<EelvlBlockEntry, vec2[]>, key: EelvlBlockEntry, x: number, y: number) {
   if (!blocks.has(key)) {
@@ -21,7 +23,7 @@ function addBlocksEntry(blocks: ManyKeysMap<EelvlBlockEntry, vec2[]>, key: Eelvl
   }
 }
 
-export function getExportedToEelvlData(): [Buffer, string] {
+export function getExportedToEelvlData(worldBlocks: DeserialisedStructure): [Buffer, string] {
   const worldMeta = getPwGameWorldHelper().meta!
   const world: EelvlFileHeader = {
     ownerName: worldMeta.owner ?? 'Unknown',
@@ -57,7 +59,7 @@ export function getExportedToEelvlData(): [Buffer, string] {
   for (let layer: number = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
     for (let y: number = 0; y < getPwGameWorldHelper().height; y++) {
       for (let x: number = 0; x < getPwGameWorldHelper().width; x++) {
-        const pwBlock = getPwGameWorldHelper().getBlockAt(x, y, layer)
+        const pwBlock = worldBlocks.blocks[layer][x][y]
         const eelvlLayer = mapLayerPwToEelvl(layer)
         const eelvlBlock = mapBlockIdPwToEelvl(pwBlock, eelvlLayer)
         const eelvlBlockId: number = eelvlBlock.blockId
@@ -69,7 +71,7 @@ export function getExportedToEelvlData(): [Buffer, string] {
         const blockEntryKey: EelvlBlockEntry = getBlockEntryKey(eelvlBlockId, eelvlBlock, eelvlLayer)
         for (const key of blockEntryKey) {
           if (typeof key !== 'string' && typeof key !== 'number') {
-            console.error(`Unexpected type in key. x: ${x}, y: ${y} Value: ${key}, type: ${typeof key}`)
+            throw new GameError(`Unexpected type in key. x: ${x}, y: ${y} Value: ${key}, type: ${typeof key}`)
           }
         }
         addBlocksEntry(blocks, blockEntryKey, x, y)
@@ -90,7 +92,7 @@ export function getExportedToEelvlData(): [Buffer, string] {
       } else if (typeof key === 'number') {
         bytes.writeInt(key)
       } else {
-        console.error(`Unexpected type in key. Value: ${key}, type: ${typeof key}`)
+        throw new GameError(`Unexpected type in key. Value: ${key}, type: ${typeof key}`)
       }
     }
   }
@@ -102,7 +104,8 @@ export function getExportedToEelvlData(): [Buffer, string] {
 }
 
 export function exportToEelvl() {
-  const [byteBuffer, fileName] = getExportedToEelvlData()
+  const worldData = getAllWorldBlocks(getPwGameWorldHelper())
+  const [byteBuffer, fileName] = getExportedToEelvlData(worldData)
   downloadFile(byteBuffer, fileName)
 }
 
@@ -113,7 +116,7 @@ function mapLayerPwToEelvl(pwLayer: number) {
     case LayerType.Foreground:
       return EelvlLayer.FOREGROUND
     default:
-      throw Error(`Unknown layer type: ${pwLayer}`)
+      throw GameError(`Unknown PW layer: ${pwLayer}`)
   }
 }
 

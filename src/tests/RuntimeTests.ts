@@ -5,10 +5,12 @@ import { deepStrictEqual } from 'node:assert'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
 import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { DeserialisedStructure } from 'pw-js-world'
+import { getExportedToEelvlData } from '@/services/EelvlExporterService.ts'
 
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')
-  const tests = [testImport]
+  const tests = [testImport, testExport]
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i]
     try {
@@ -25,30 +27,45 @@ export async function performRuntimeTests() {
   sendGlobalChatMessage(`[TEST] ALL TESTS PASSED`)
 }
 
-async function testImport() {
-  const everyBlockEelvlRaw = await fetch(everyBlockEelvlFile)
-  const everyBlockEelvlArrayBuffer = await everyBlockEelvlRaw.arrayBuffer()
-  const importedFromEelvlData = getImportedFromEelvlData(everyBlockEelvlArrayBuffer)
-
-  const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
-  const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
-  const importedFromPwlvlData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
-
-  deepStrictEqual(importedFromEelvlData.width, importedFromPwlvlData.width)
-  deepStrictEqual(importedFromEelvlData.height, importedFromPwlvlData.height)
+function compareDeserialisedStructureData(receivedData: DeserialisedStructure, expectedData: DeserialisedStructure) {
+  deepStrictEqual(receivedData.width, expectedData.width)
+  deepStrictEqual(receivedData.height, expectedData.height)
   for (let layer = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
-    for (let x = 0; x < importedFromEelvlData.width; x++) {
-      for (let y = 0; y < importedFromEelvlData.height; y++) {
-        const importedBlock = importedFromEelvlData.blocks[layer][x][y]
-        const parsedBlock = importedFromPwlvlData.blocks[layer][x][y]
+    for (let x = 0; x < receivedData.width; x++) {
+      for (let y = 0; y < receivedData.height; y++) {
+        const receivedBlock = receivedData.blocks[layer][x][y]
+        const expectedBlock = expectedData.blocks[layer][x][y]
         deepStrictEqual(
-          importedBlock,
-          parsedBlock,
+          receivedBlock,
+          expectedBlock,
           new Error(
-            `testImport error: Block at ${x}, ${y} on layer ${layer} is not equal.\nGot (${importedBlock.name}):\n${JSON.stringify(importedBlock)}.\nExpected (${parsedBlock.name}):\n${JSON.stringify(parsedBlock)}`,
+            `ERROR! Block at ${x}, ${y} on layer ${layer} is not equal.\nGot (${receivedBlock.name}):\n${JSON.stringify(receivedBlock)}.\nExpected (${expectedBlock.name}):\n${JSON.stringify(expectedBlock)}`,
           ),
         )
       }
     }
   }
+}
+
+async function testImport() {
+  const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
+  const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
+  const expectedData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
+
+  const everyBlockEelvlRaw = await fetch(everyBlockEelvlFile)
+  const everyBlockEelvlArrayBuffer = await everyBlockEelvlRaw.arrayBuffer()
+  const receivedData = getImportedFromEelvlData(everyBlockEelvlArrayBuffer)
+
+  compareDeserialisedStructureData(receivedData, expectedData)
+}
+
+async function testExport() {
+  const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
+  const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
+  const expectedData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
+
+  const [exportEelvlDataBuffer] = getExportedToEelvlData(expectedData)
+  const receivedData = getImportedFromEelvlData(exportEelvlDataBuffer)
+
+  compareDeserialisedStructureData(receivedData, expectedData)
 }

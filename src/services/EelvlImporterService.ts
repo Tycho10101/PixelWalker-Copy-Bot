@@ -13,6 +13,7 @@ import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
 import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
 import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { GameError } from '@/classes/GameError.ts'
 
 export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -66,22 +67,17 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
 }
 
 export async function importFromEelvl(fileData: ArrayBuffer) {
-  try {
-    if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
-      return
-    }
+  if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
+    return
+  }
 
-    const worldData = getImportedFromEelvlData(fileData)
+  const worldData = getImportedFromEelvlData(fileData)
 
-    const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
-    if (success) {
-      sendGlobalChatMessage('Finished importing world.')
-    } else {
-      sendGlobalChatMessage('[ERROR] Failed to import world.')
-    }
-  } catch (e) {
-    console.error(e)
-    sendGlobalChatMessage('Unknown error occurred while importing eelvl file.')
+  const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
+  if (success) {
+    sendGlobalChatMessage('Finished importing world.')
+  } else {
+    sendGlobalChatMessage('[ERROR] Failed to import world.')
   }
 }
 
@@ -92,7 +88,7 @@ function mapLayerEelvlToPw(eelvlLayer: number) {
     case EelvlLayer.FOREGROUND:
       return LayerType.Foreground
     default:
-      throw Error(`Unknown layer type: ${eelvlLayer}`)
+      throw GameError(`Unknown EELVL layer: ${eelvlLayer}`)
   }
 }
 

@@ -23,10 +23,16 @@ import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoServic
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
 import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { pwAuthenticate, pwCheckEdit, pwClearWorld, pwJoinWorld } from '@/services/PWClientService.ts'
+import {
+  getAllWorldBlocks,
+  pwAuthenticate,
+  pwCheckEdit,
+  pwClearWorld,
+  pwJoinWorld,
+} from '@/services/PWClientService.ts'
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
-import { GENERAL_CONSTANTS } from '@/constants/General.ts'
 import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
+import { handleException } from '@/utils/Exception.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -103,13 +109,7 @@ async function importCommandReceived(args: string[], playerId: number) {
 
   const pwApiClient = new PWApiClient(usePWClientStore().email, usePWClientStore().password)
 
-  try {
-    await pwAuthenticate(pwApiClient)
-  } catch (e) {
-    sendPrivateChatMessage((e as Error).message, playerId)
-    console.error(e)
-    return
-  }
+  await pwAuthenticate(pwApiClient)
 
   const pwGameClient = new PWGameClient(pwApiClient)
   const pwGameWorldHelper = new PWGameWorldHelper()
@@ -117,25 +117,19 @@ async function importCommandReceived(args: string[], playerId: number) {
   pwGameClient.addHook(pwGameWorldHelper.receiveHook).addCallback('playerInitPacket', async () => {
     try {
       pwGameClient.send('playerInitReceived')
-      const blocks = pwGameWorldHelper.sectionBlocks(0, 0, pwGameWorldHelper.width - 1, pwGameWorldHelper.height - 1)
+
+      const blocks = getAllWorldBlocks(pwGameWorldHelper)
       sendGlobalChatMessage(`Importing world from ${worldId}`)
       await pwClearWorld()
       await importFromPwlvl(blocks.toBuffer())
     } catch (e) {
-      console.error(e)
-      sendPrivateChatMessage(GENERAL_CONSTANTS.GENERIC_ERROR, playerId)
+      handleException(e)
     } finally {
       pwGameClient.disconnect(false)
     }
   })
 
-  try {
-    await pwJoinWorld(pwGameClient, worldId)
-  } catch (e) {
-    sendPrivateChatMessage((e as Error).message, playerId)
-    console.error(e)
-    return
-  }
+  await pwJoinWorld(pwGameClient, worldId)
 }
 
 async function testCommandReceived(_args: string[], playerId: number) {
@@ -149,7 +143,7 @@ async function testCommandReceived(_args: string[], playerId: number) {
 
   if (getPwGameWorldHelper().width !== 636 && getPwGameWorldHelper().height !== 50) {
     sendPrivateChatMessage('ERROR! To perform tests, world must be 636x50 size.', playerId)
-    return false
+    return
   }
 
   await performRuntimeTests()

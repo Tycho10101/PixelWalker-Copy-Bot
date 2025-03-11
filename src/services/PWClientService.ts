@@ -75,3 +75,7 @@ export function pwCheckEditWhenImporting(pwGameWorldHelper: PWGameWorldHelper): 
 
   return true
 }
+
+export function getAllWorldBlocks(pwGameWorldHelper: PWGameWorldHelper): DeserialisedStructure {
+  return pwGameWorldHelper.sectionBlocks(0, 0, pwGameWorldHelper.width - 1, pwGameWorldHelper.height - 1)
+}
