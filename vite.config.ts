@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import eslint from 'vite-plugin-eslint2'
-import checker from 'vite-plugin-checker'
+// import checker from 'vite-plugin-checker'
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
@@ -15,9 +15,9 @@ export default defineConfig(() => {
       tsconfigPaths(),
       nodePolyfills(),
       eslint(),
-      checker({
-        typescript: true,
-      }),
+      // checker({
+      //   typescript: true,
+      // }),
     ],
     optimizeDeps: {
       esbuildOptions: {
