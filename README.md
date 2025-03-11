@@ -58,3 +58,9 @@ Then open up this:\
 http://localhost:4173/Pixel-Walker-Copy-Bot/
 
 Vite's HMR won't work for production build, so you need to run build and preview commands when you make code changes.
+
+## Runtime tests
+
+This repository contains runtime tests.
+
+To use them, run `.test` while in game.
