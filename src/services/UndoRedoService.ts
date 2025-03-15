@@ -19,6 +19,7 @@ export function addUndoItem(botData: BotData, newBlocks: WorldBlock[], oldBlock:
   botData.undoStack.push(undoRedoItem)
 }
 
+// TODO: this could be improved by smartly merging blocks as opposed to doing undo one by one
 export function performUndo(botData: BotData, playerId: number, count: number) {
   let i = 0
   for (; i < count; i++) {
@@ -27,11 +28,12 @@ export function performUndo(botData: BotData, playerId: number, count: number) {
       break
     }
     botData.redoStack.push(undoRedoItem)
-    placeMultipleBlocks(undoRedoItem.oldBlocks)
+    void placeMultipleBlocks(undoRedoItem.oldBlocks)
   }
   sendPrivateChatMessage(`Undo performed ${i} time(s).`, playerId)
 }
 
+// TODO: this could be improved by smartly merging blocks as opposed to doing redo one by one
 export function performRedo(botData: BotData, playerId: number, count: number) {
   let i = 0
   for (; i < count; i++) {
@@ -40,7 +42,7 @@ export function performRedo(botData: BotData, playerId: number, count: number) {
       break
     }
     botData.undoStack.push(undoRedoItem)
-    placeMultipleBlocks(undoRedoItem.newBlocks)
+    void placeMultipleBlocks(undoRedoItem.newBlocks)
   }
   sendPrivateChatMessage(`Redo performed ${i} time(s).`, playerId)
 }

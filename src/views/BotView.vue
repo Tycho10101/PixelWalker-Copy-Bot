@@ -1,21 +1,76 @@
-<script lang="ts">
-import { defineComponent } from 'vue'
-import BotInfo from './BotInfo.ts'
-import PiCardContainer from '@/components/PiCardContainer.vue'
-import PiTextField from '@/components/PiTextField.vue'
-import PiButton from '@/components/PiButton.vue'
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
+import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { useRouter } from 'vue-router'
+import { LoginViewRoute } from '@/router/Routes.ts'
+import { exportToEelvl } from '@/services/EelvlExporterService.ts'
+import { exportToPwlvl } from '@/services/PwlvlExporterService.ts'
+import { FileImportAsArrayBufferResult, getFileAsArrayBuffer } from '@/services/FileService.ts'
+import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
+import { importFromEelvl } from '@/services/EelvlImporterService.ts'
+import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { withLoading } from '@/services/LoaderProxyService.ts'
+import PiCardContainer from '@/components/PiCardContainer.vue'
+import PiButton from '@/components/PiButton.vue'
+import { createAsyncCallback } from '@/utils/Promise.ts'
 
-export default defineComponent({
-  methods: { withLoading },
-  components: { PiCardContainer, PiTextField, PiButton },
-  extends: BotInfo,
-  setup(props, ctx) {
-    return {
-      ...BotInfo.setup!(props, ctx),
-    }
-  },
-})
+const loading = { loadingDisconnect: ref(false), loadingEelvlExport: ref(false), loadingPwlvlExport: ref(false) }
+
+const PWClientStore = usePWClientStore()
+const router = useRouter()
+
+const importEelvlFileInput = ref<HTMLInputElement>()
+const importPwlvlFileInput = ref<HTMLInputElement>()
+
+const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
+
+const worldId = ref<string>(PWClientStore.worldId)
+const worldName = ref<string>(getPwGameWorldHelper().meta?.title ?? '')
+
+async function onDisconnectButtonClick() {
+  getPwGameClient().disconnect(false)
+
+  PWClientStore.setPwGameClient(undefined)
+  PWClientStore.setPwApiClient(undefined)
+  PWClientStore.worldId = ''
+  PWClientStore.email = ''
+  PWClientStore.password = ''
+  await router.push({ name: LoginViewRoute.name })
+}
+
+function onExportEelvlButtonClick() {
+  exportToEelvl()
+}
+
+function onImportEelvlButtonClick() {
+  importEelvlFileInput.value!.click()
+}
+
+function onExportPwlvlButtonClick() {
+  exportToPwlvl()
+}
+
+function onImportPwlvlButtonClick() {
+  importPwlvlFileInput.value!.click()
+}
+
+async function onEelvlFileChange(event: Event) {
+  const result: FileImportAsArrayBufferResult | null = await getFileAsArrayBuffer(event)
+  if (!result) {
+    return
+  }
+  sendGlobalChatMessage(`Importing world from ${result.file.name}`)
+  await importFromEelvl(result.data)
+}
+
+async function onPwlvlFileChange(event: Event) {
+  const result: FileImportAsArrayBufferResult | null = await getFileAsArrayBuffer(event)
+  if (!result) {
+    return
+  }
+  sendGlobalChatMessage(`Importing world from ${result.file.name}`)
+  await importFromPwlvl(result.data)
+}
 </script>
 
 <template>
@@ -53,9 +108,9 @@ export default defineComponent({
     <v-col>
       <v-row>
         <PiButton
-          :loading="loading.loadingExport.value"
+          :loading="loading.loadingEelvlExport.value"
           color="blue"
-          @click="withLoading(loading.loadingExport, onExportEelvlButtonClick)"
+          @click="withLoading(loading.loadingEelvlExport, createAsyncCallback(onExportEelvlButtonClick))"
           >Export to EELVL
         </PiButton>
       </v-row>
@@ -72,9 +127,9 @@ export default defineComponent({
       <v-row>
         <PiButton
           v-if="devViewEnabled"
-          :loading="loading.loadingExport.value"
+          :loading="loading.loadingPwlvlExport.value"
           color="blue"
-          @click="withLoading(loading.loadingExport, onExportPwlvlButtonClick)"
+          @click="withLoading(loading.loadingPwlvlExport, createAsyncCallback(onExportPwlvlButtonClick))"
           >Export to PWLVL
         </PiButton>
       </v-row>
@@ -158,4 +213,9 @@ export default defineComponent({
   </PiCardContainer>
 </template>
 
-<style scoped src="./BotInfo.css" />
+<style scoped>
+/*Waiting for fix: https://github.com/vuetifyjs/vuetify/issues/17633*/
+ul {
+  padding-left: 2rem;
+}
+</style>

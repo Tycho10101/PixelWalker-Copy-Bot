@@ -64,8 +64,8 @@ export function placeBlockPacket(blockPacket: SendableBlockPacket) {
   getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
 }
 
-export function getBlockName(pwBlockId: number): string {
-  return getBlockMappingsReversed()[pwBlockId].toUpperCase()
+export function getBlockName(pwBlockId: number): PwBlockName {
+  return getBlockMappingsReversed()[pwBlockId].toUpperCase() as PwBlockName
 }
 
 export function getBlockId(pwBlockName: PwBlockName): number {

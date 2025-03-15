@@ -3,7 +3,7 @@
     <v-col>
       <v-row>
         {{ 'Last updated ' + changelogLatestVersionLine }}
-        <PiButton @click="openChangelog" color="yellow">Changelog</PiButton>
+        <PiButton color="yellow" @click="openChangelog">Changelog</PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>

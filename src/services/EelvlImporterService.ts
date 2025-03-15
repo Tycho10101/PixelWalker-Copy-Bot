@@ -82,7 +82,7 @@ export async function importFromEelvl(fileData: ArrayBuffer) {
 }
 
 function mapLayerEelvlToPw(eelvlLayer: number) {
-  switch (eelvlLayer) {
+  switch (eelvlLayer as EelvlLayer) {
     case EelvlLayer.BACKGROUND:
       return LayerType.Background
     case EelvlLayer.FOREGROUND:
@@ -95,7 +95,7 @@ function mapLayerEelvlToPw(eelvlLayer: number) {
 function readEelvlBlock(bytes: ByteArray, eelvlBlockId: number) {
   const eelvlBlock = {} as EelvlBlock
 
-  switch (eelvlBlockId) {
+  switch (eelvlBlockId as EelvlBlockId) {
     case EelvlBlockId.PORTAL:
     case EelvlBlockId.PORTAL_INVISIBLE:
       eelvlBlock.intParameter = bytes.readInt()
@@ -153,7 +153,7 @@ function createBlock(pwBlockName: PwBlockName, args?: BlockArg[]): Block {
 }
 
 function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
-  switch (eelvlBlock.blockId) {
+  switch (eelvlBlock.blockId as EelvlBlockId) {
     case EelvlBlockId.COIN_GOLD_DOOR:
       return createBlock(PwBlockName.COIN_GOLD_DOOR, [eelvlBlock.intParameter!])
     case EelvlBlockId.COIN_GOLD_GATE:

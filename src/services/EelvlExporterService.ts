@@ -64,7 +64,7 @@ export function getExportedToEelvlData(worldBlocks: DeserialisedStructure): [Buf
         const eelvlBlock = mapBlockIdPwToEelvl(pwBlock, eelvlLayer)
         const eelvlBlockId: number = eelvlBlock.blockId
 
-        if (eelvlBlockId === EelvlBlockId.EMPTY) {
+        if (eelvlBlockId as EelvlBlockId === EelvlBlockId.EMPTY) {
           continue
         }
 
@@ -110,7 +110,7 @@ export function exportToEelvl() {
 }
 
 function mapLayerPwToEelvl(pwLayer: number) {
-  switch (pwLayer) {
+  switch (pwLayer as LayerType) {
     case LayerType.Background:
       return EelvlLayer.BACKGROUND
     case LayerType.Foreground:
@@ -125,7 +125,7 @@ function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLay
 }
 
 function getBlockArgs(eelvlBlockId: number, eelvlBlock: EelvlBlock): EelvlBlockEntry {
-  switch (eelvlBlockId) {
+  switch (eelvlBlockId as EelvlBlockId) {
     case EelvlBlockId.PORTAL:
     case EelvlBlockId.PORTAL_INVISIBLE:
       return [eelvlBlock.intParameter, eelvlBlock.portalId, eelvlBlock.portalTarget]
@@ -162,7 +162,7 @@ function writePositionsByteArrays(bytes: ByteArray, positions: vec2[]) {
 }
 
 function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock {
-  const pwBlockName: string = getBlockName(pwBlock.bId)
+  const pwBlockName = getBlockName(pwBlock.bId)
 
   switch (pwBlockName) {
     case PwBlockName.CLIMBABLE_CHAIN_LIGHT_HORIZONTAL:
@@ -1163,7 +1163,7 @@ function createMissingBlockSign(message: string): EelvlBlock {
 }
 
 function getPwToEelvlEffectsJumpHeightBlock(pwBlock: Block): EelvlBlock {
-  const jumpHeight = pwBlock.args[0]
+  const jumpHeight = pwBlock.args[0] as number
   switch (jumpHeight) {
     case 2:
       return { blockId: EelvlBlockId.EFFECTS_JUMP_HEIGHT, intParameter: 2 }
@@ -1177,7 +1177,7 @@ function getPwToEelvlEffectsJumpHeightBlock(pwBlock: Block): EelvlBlock {
 }
 
 function getPwToEelvlEffectsSpeedBlock(pwBlock: Block): EelvlBlock {
-  const speed = pwBlock.args[0]
+  const speed = pwBlock.args[0] as number
   switch (speed) {
     case 60:
       return { blockId: EelvlBlockId.EFFECTS_SPEED, intParameter: 2 }
@@ -1191,7 +1191,7 @@ function getPwToEelvlEffectsSpeedBlock(pwBlock: Block): EelvlBlock {
 }
 
 function getPwToEelvlEffectsGravityForceBlock(pwBlock: Block): EelvlBlock {
-  const gravityForce = pwBlock.args[0]
+  const gravityForce = pwBlock.args[0] as number
   switch (gravityForce) {
     case 15:
       return { blockId: EelvlBlockId.EFFECTS_GRAVITYFORCE, intParameter: 1 }
@@ -1245,13 +1245,15 @@ function getPwToEelvlNoteBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): Eelv
 }
 
 function getPwToEelvlSwitchActivatorBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): EelvlBlock {
-  if (pwBlock.args[1] === 0) {
-    return { blockId: eelvlBlockId, intParameter: pwBlock.args[0] as number }
+  const switchIdArg = pwBlock.args[0] as number
+  const switchStateArg = pwBlock.args[1] as number // 0 = OFF, 1 = ON
+  if (switchStateArg === 0) {
+    return { blockId: eelvlBlockId, intParameter: switchIdArg }
   } else {
     const pwBlockName =
       eelvlBlockId === EelvlBlockId.SWITCH_LOCAL_ACTIVATOR
         ? PwBlockName.SWITCH_LOCAL_ACTIVATOR
         : PwBlockName.SWITCH_GLOBAL_ACTIVATOR
-    return createMissingBlockSign(`${pwBlockName} switch id: ${pwBlock.args[0]}, switch state: ON`)
+    return createMissingBlockSign(`${pwBlockName} switch id: ${switchIdArg}, switch state: ON`)
   }
 }

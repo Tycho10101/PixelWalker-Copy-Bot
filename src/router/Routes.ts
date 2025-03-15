@@ -1,19 +1,19 @@
 const basePath = '/Pixel-Walker-Copy-Bot'
 
-export const LoginRoute = {
+export const LoginViewRoute = {
   path: `${basePath}/login`,
   name: 'login',
-  component: () => import('@/views/Login/Login.vue'),
+  component: () => import('@/views/LoginView.vue'),
 }
 
-export const BotInfoRoute = {
-  path: `${basePath}/bot-info`,
-  name: 'bot-info',
-  component: () => import('@/views/BotInfo/BotInfo.vue'),
+export const BotViewRoute = {
+  path: `${basePath}/bot`,
+  name: 'bot',
+  component: () => import('@/views/BotView.vue'),
 }
 
 export const NotFoundRoute = {
   path: '/:pathMatch(.*)*',
   name: 'notFound',
-  component: () => import('@/views/NotFound.vue'),
+  component: () => import('@/views/NotFoundView.vue'),
 }

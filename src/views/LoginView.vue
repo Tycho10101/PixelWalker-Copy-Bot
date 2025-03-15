@@ -1,0 +1,92 @@
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
+import PiCardContainer from '@/components/PiCardContainer.vue'
+import PiTextField from '@/components/PiTextField.vue'
+import PiButton from '@/components/PiButton.vue'
+import { VForm } from 'vuetify/components'
+import { useRouter } from 'vue-router'
+import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
+import { PWApiClient, PWGameClient } from 'pw-js-api'
+import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
+import { registerCallbacks } from '@/services/PacketHandlerService.ts'
+import { getReversedRecord } from '@/utils/ReverseRecord.ts'
+import { BotViewRoute } from '@/router/Routes.ts'
+import { withLoading } from '@/services/LoaderProxyService.ts'
+
+const email = ref('')
+const password = ref('')
+const worldId = ref('')
+const loading = { loading: ref(false) }
+const form = ref<VForm>()
+
+const router = useRouter()
+const PWClientStore = usePWClientStore()
+
+const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
+
+watch(worldId, () => {
+  worldId.value = getWorldIdIfUrl(worldId.value)
+})
+
+async function onConnectButtonClick() {
+  PWClientStore.worldId = worldId.value
+  PWClientStore.email = email.value
+  PWClientStore.password = password.value
+  if (!(await form.value!.validate()).valid) {
+    return
+  }
+
+  PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
+
+  await pwAuthenticate(getPwApiClient())
+
+  PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
+
+  registerCallbacks()
+
+  await pwJoinWorld(getPwGameClient(), worldId.value)
+
+  PWClientStore.blockMappings = await getPwApiClient().getMappings()
+  PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)
+
+  await router.push({ name: BotViewRoute.name })
+}
+
+function setDefaultWorldIdButtonClicked() {
+  worldId.value = import.meta.env.VITE_DEFAULT_WORLD_ID
+}
+</script>
+
+<template>
+  <PiCardContainer>
+    <v-form
+      ref="form"
+      autocomplete="on"
+      validate-on="submit lazy"
+      @submit.prevent="withLoading(loading.loading, onConnectButtonClick)"
+    >
+      <v-col>
+        <v-row>
+          <PiTextField v-model="email" :required="true" label="Email"></PiTextField>
+        </v-row>
+        <v-row>
+          <PiTextField v-model="password" :required="true" label="Password" type="password"></PiTextField>
+        </v-row>
+        <v-row>
+          <PiTextField v-model="worldId" :required="true" hint="World ID or World URL" label="World ID"></PiTextField>
+        </v-row>
+        <v-row>
+          <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>
+        </v-row>
+        <v-row>
+          <PiButton v-if="devViewEnabled" color="blue" @click="setDefaultWorldIdButtonClicked"
+            >Set default world id
+          </PiButton>
+        </v-row>
+      </v-col>
+    </v-form>
+  </PiCardContainer>
+</template>
+
+<style scoped></style>

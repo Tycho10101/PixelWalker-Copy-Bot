@@ -1,15 +1,22 @@
 <template>
   <v-text-field
-    :rules="[(v) => !!v || !props.required || 'Field mandatory.', ...(props.rules ? props.rules : [])]"
+    :rules="[(v) => !!v || !props.required || 'Field mandatory.', ...(props.rules)]"
     :required="props.required"
   />
 </template>
 
 <script setup lang="ts">
+
+import type { VTextField } from 'vuetify/components'
+
+// https://stackoverflow.com/a/77201828
+type UnwrapReadonlyArray<A> = A extends Readonly<Array<infer I>> ? I : A;
+type ValidationRule = UnwrapReadonlyArray<VTextField['rules']>
+
 interface Props {
   required?: boolean
-  rules?: any[]
+  rules?: ValidationRule[]
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefaults(defineProps<Props>(), { required: false, rules: () => [] })
 </script>

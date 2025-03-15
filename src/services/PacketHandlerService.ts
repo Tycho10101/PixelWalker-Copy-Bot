@@ -305,7 +305,8 @@ function applySmartTransformForBlocks(
 
     if (pastePosBlock.block.bId === nextBlockX.block.bId || pastePosBlock.block.bId === nextBlockY.block.bId) {
       const pastedBlockName = getBlockName(pastePosBlock.block.bId)
-      const blockArgTypes: readonly ComponentTypeHeader[] = BlockArgsHeadings[pastedBlockName as keyof typeof BlockArgsHeadings] ?? []
+      const blockArgTypes: readonly ComponentTypeHeader[] =
+        BlockArgsHeadings[pastedBlockName as keyof typeof BlockArgsHeadings] ?? []
       for (let i = 0; i < blockArgTypes.length; i++) {
         const blockArgType = blockArgTypes[i]
         if (blockArgType === ComponentTypeHeader.Int32) {
@@ -324,7 +325,7 @@ function applySmartTransformForBlocks(
   })
 }
 
-function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
+async function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
   try {
     placeBlockPacket(blockPacket)
     let allBlocks: WorldBlock[] = []
@@ -375,7 +376,7 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
     }
 
     addUndoItem(botData, allBlocks, oldBlock, blockPos)
-    placeMultipleBlocks(allBlocks)
+    await placeMultipleBlocks(allBlocks)
   } finally {
     botData.repeatVec = vec2(1, 1)
   }
@@ -439,7 +440,7 @@ function updateWorldImportFinished(data: ProtoGen.WorldBlockPlacedPacket) {
   }
 }
 
-function worldBlockPlacedPacketReceived(
+async function worldBlockPlacedPacketReceived(
   data: ProtoGen.WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
@@ -479,7 +480,7 @@ function worldBlockPlacedPacketReceived(
       return
     }
 
-    pasteBlocks(blockPacket, botData, blockPos, oldBlock)
+    await pasteBlocks(blockPacket, botData, blockPos, oldBlock)
   }
 }
 
