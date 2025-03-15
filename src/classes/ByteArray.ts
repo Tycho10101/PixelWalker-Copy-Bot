@@ -1,4 +1,4 @@
-// Source: https://github.com/doomestee/PlayerIOClient.js/blob/main/lib/structures/ByteArray.ts
+// Original source: https://github.com/doomestee/PlayerIOClient.js/blob/main/lib/structures/ByteArray.ts
 
 import { decode, encode, encodingExists } from 'iconv-lite'
 import type { InputType, ZlibOptions } from 'zlib'
@@ -161,28 +161,28 @@ export class ByteArray {
    * @description Reads a double
    */
   readDouble(): number {
-    return this.hashreadBufferFunc('readDouble', 8)
+    return this.hashreadBufferFunc('readDouble', 8) as number
   }
 
   /**
    * Reads a float
    */
   readFloat(): number {
-    return this.hashreadBufferFunc('readFloat', 4)
+    return this.hashreadBufferFunc('readFloat', 4) as number
   }
 
   /**
    * Reads a signed int
    */
   readInt(): number {
-    return this.hashreadBufferFunc('readInt32', 4)
+    return this.hashreadBufferFunc('readInt32', 4) as number
   }
 
   /**
    * Reads a signed long
    */
   readLong(): bigint {
-    return this.hashreadBufferFunc('readBigInt64', 8)
+    return this.hashreadBufferFunc('readBigInt64', 8) as bigint
   }
 
   /**
@@ -214,7 +214,7 @@ export class ByteArray {
    * Reads a signed short
    */
   readShort(): number {
-    return this.hashreadBufferFunc('readInt16', 2)
+    return this.hashreadBufferFunc('readInt16', 2) as number
   }
 
   /**
@@ -228,21 +228,21 @@ export class ByteArray {
    * Reads an unsigned int
    */
   readUnsignedInt(): number {
-    return this.hashreadBufferFunc('readUInt32', 4)
+    return this.hashreadBufferFunc('readUInt32', 4) as number
   }
 
   /**
    * Reads an unsigned short
    */
   readUnsignedShort(): number {
-    return this.hashreadBufferFunc('readUInt16', 2)
+    return this.hashreadBufferFunc('readUInt16', 2) as number
   }
 
   /**
    * Reads an unsigned long
    */
   readUnsignedLong(): bigint {
-    return this.hashreadBufferFunc('readBigUInt64', 8)
+    return this.hashreadBufferFunc('readBigUInt64', 8) as bigint
   }
 
   /**

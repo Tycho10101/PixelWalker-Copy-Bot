@@ -1,4 +1,3 @@
-import { PlayerChatPacket, PlayerJoinedPacket, WorldBlockPlacedPacket } from 'pw-js-api/esm/gen/world_pb'
 import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import {
   Block,
@@ -22,7 +21,7 @@ import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from 
 import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
-import { PWApiClient, PWGameClient } from 'pw-js-api'
+import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
 import {
   getAllWorldBlocks,
   pwAuthenticate,
@@ -44,7 +43,7 @@ export function registerCallbacks() {
     .addCallback('playerJoinedPacket', playerJoinedPacketReceived)
 }
 
-function playerJoinedPacketReceived(data: PlayerJoinedPacket) {
+function playerJoinedPacketReceived(data: ProtoGen.PlayerJoinedPacket) {
   const playerId = data.properties?.playerId
   if (!playerId) {
     return
@@ -55,7 +54,7 @@ function playerJoinedPacketReceived(data: PlayerJoinedPacket) {
   sendPrivateChatMessage('Copy Bot is here! Type .help to show usage!', playerId)
 }
 
-async function playerChatPacketReceived(data: PlayerChatPacket) {
+async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
   const args = data.message.split(' ')
   const playerId = data.playerId
 
@@ -306,8 +305,7 @@ function applySmartTransformForBlocks(
 
     if (pastePosBlock.block.bId === nextBlockX.block.bId || pastePosBlock.block.bId === nextBlockY.block.bId) {
       const pastedBlockName = getBlockName(pastePosBlock.block.bId)
-      const blockArgTypes: ComponentTypeHeader[] =
-        (BlockArgsHeadings as Record<string, ComponentTypeHeader[]>)[pastedBlockName] ?? []
+      const blockArgTypes: readonly ComponentTypeHeader[] = BlockArgsHeadings[pastedBlockName as keyof typeof BlockArgsHeadings] ?? []
       for (let i = 0; i < blockArgTypes.length; i++) {
         const blockArgType = blockArgTypes[i]
         if (blockArgType === ComponentTypeHeader.Int32) {
@@ -431,7 +429,7 @@ function selectBlocks(
   sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
 }
 
-function updateWorldImportFinished(data: WorldBlockPlacedPacket) {
+function updateWorldImportFinished(data: ProtoGen.WorldBlockPlacedPacket) {
   // Not really reliable, but good enough
   if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport > 0) {
     usePWClientStore().totalBlocksLeftToReceiveFromWorldImport -= data.positions.length
@@ -442,7 +440,7 @@ function updateWorldImportFinished(data: WorldBlockPlacedPacket) {
 }
 
 function worldBlockPlacedPacketReceived(
-  data: WorldBlockPlacedPacket,
+  data: ProtoGen.WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
   updateWorldImportFinished(data)

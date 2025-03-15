@@ -22,7 +22,7 @@ export default defineComponent({
     const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
 
     const worldId = ref<string>(PWClientStore.worldId)
-    const worldName = ref<string>(getPwGameWorldHelper().meta?.title)
+    const worldName = ref<string>(getPwGameWorldHelper().meta?.title ?? '')
 
     async function onDisconnectButtonClick() {
       getPwGameClient().disconnect(false)

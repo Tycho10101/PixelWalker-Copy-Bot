@@ -116,7 +116,7 @@ function mapLayerPwToEelvl(pwLayer: number) {
     case LayerType.Foreground:
       return EelvlLayer.FOREGROUND
     default:
-      throw GameError(`Unknown PW layer: ${pwLayer}`)
+      throw new GameError(`Unknown PW layer: ${pwLayer}`)
   }
 }
 

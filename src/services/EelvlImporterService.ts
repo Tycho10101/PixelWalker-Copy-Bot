@@ -88,7 +88,7 @@ function mapLayerEelvlToPw(eelvlLayer: number) {
     case EelvlLayer.FOREGROUND:
       return LayerType.Foreground
     default:
-      throw GameError(`Unknown EELVL layer: ${eelvlLayer}`)
+      throw new GameError(`Unknown EELVL layer: ${eelvlLayer}`)
   }
 }
 
