@@ -13,11 +13,12 @@ import { registerCallbacks } from '@/services/PacketHandlerService.ts'
 import { getReversedRecord } from '@/utils/ReverseRecord.ts'
 import { BotViewRoute } from '@/router/Routes.ts'
 import { withLoading } from '@/services/LoaderProxyService.ts'
+import PiOverlay from '@/components/PiOverlay.vue'
 
+const loadingOverlay = ref(false)
 const email = ref('')
 const password = ref('')
 const worldId = ref('')
-const loading = { connect: ref(false) }
 const form = ref<VForm>()
 
 const router = useRouter()
@@ -30,7 +31,7 @@ watch(worldId, () => {
 })
 
 async function onConnectButtonClick() {
-  await withLoading(loading.connect, async () => {
+  await withLoading(loadingOverlay, async () => {
     PWClientStore.worldId = worldId.value
     PWClientStore.email = email.value
     PWClientStore.password = password.value
@@ -61,6 +62,7 @@ function setDefaultWorldIdButtonClicked() {
 </script>
 
 <template>
+  <PiOverlay :loading="loadingOverlay"></PiOverlay>
   <PiCardContainer>
     <v-form ref="form" autocomplete="on" validate-on="submit lazy" @submit.prevent="onConnectButtonClick">
       <v-col>
@@ -74,7 +76,7 @@ function setDefaultWorldIdButtonClicked() {
           <PiTextField v-model="worldId" :required="true" hint="World ID or World URL" label="World ID"></PiTextField>
         </v-row>
         <v-row>
-          <PiButton :loading="loading.connect.value" color="green" type="submit">Connect</PiButton>
+          <PiButton color="green" type="submit">Connect</PiButton>
         </v-row>
         <v-row>
           <PiButton v-if="devViewEnabled" color="blue" @click="setDefaultWorldIdButtonClicked"

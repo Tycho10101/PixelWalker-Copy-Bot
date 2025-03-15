@@ -13,14 +13,9 @@ import { withLoading } from '@/services/LoaderProxyService.ts'
 import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiButton from '@/components/PiButton.vue'
 import { createAsyncCallback } from '@/utils/Promise.ts'
+import PiOverlay from '@/components/PiOverlay.vue'
 
-const loading = {
-  disconnect: ref(false),
-  eelvlImport: ref(false),
-  eelvlExport: ref(false),
-  pwlvlImport: ref(false),
-  pwlvlExport: ref(false),
-}
+const loadingOverlay = ref(false)
 
 const PWClientStore = usePWClientStore()
 const router = useRouter()
@@ -34,7 +29,7 @@ const worldId = ref<string>(PWClientStore.worldId)
 const worldName = ref<string>(getPwGameWorldHelper().meta?.title ?? '')
 
 async function onDisconnectButtonClick() {
-  await withLoading(loading.disconnect, async () => {
+  await withLoading(loadingOverlay, async () => {
     getPwGameClient().disconnect(false)
 
     PWClientStore.setPwGameClient(undefined)
@@ -48,7 +43,7 @@ async function onDisconnectButtonClick() {
 
 async function onExportEelvlButtonClick() {
   await withLoading(
-    loading.eelvlExport,
+    loadingOverlay,
     createAsyncCallback(() => {
       exportToEelvl()
     }),
@@ -61,7 +56,7 @@ function onImportEelvlButtonClick() {
 
 async function onExportPwlvlButtonClick() {
   await withLoading(
-    loading.pwlvlExport,
+    loadingOverlay,
     createAsyncCallback(() => {
       exportToPwlvl()
     }),
@@ -73,7 +68,7 @@ function onImportPwlvlButtonClick() {
 }
 
 async function onEelvlFileChange(event: Event) {
-  await withLoading(loading.eelvlImport, async () => {
+  await withLoading(loadingOverlay, async () => {
     const result: FileImportAsArrayBufferResult | null = await getFileAsArrayBuffer(event)
     if (!result) {
       return
@@ -84,7 +79,7 @@ async function onEelvlFileChange(event: Event) {
 }
 
 async function onPwlvlFileChange(event: Event) {
-  await withLoading(loading.pwlvlImport, async () => {
+  await withLoading(loadingOverlay, async () => {
     const result: FileImportAsArrayBufferResult | null = await getFileAsArrayBuffer(event)
     if (!result) {
       return
@@ -96,6 +91,7 @@ async function onPwlvlFileChange(event: Event) {
 </script>
 
 <template>
+  <PiOverlay :loading="loadingOverlay"></PiOverlay>
   <PiCardContainer>
     <v-col>
       <v-row>
@@ -107,9 +103,7 @@ async function onPwlvlFileChange(event: Event) {
         }}</a></v-row
       >
       <v-row>
-        <PiButton :loading="loading.disconnect.value" color="red" @click="onDisconnectButtonClick"
-          >Disconnect
-        </PiButton>
+        <PiButton color="red" @click="onDisconnectButtonClick">Disconnect </PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>
@@ -126,9 +120,7 @@ async function onPwlvlFileChange(event: Event) {
   <PiCardContainer>
     <v-col>
       <v-row>
-        <PiButton :loading="loading.eelvlExport.value" color="blue" @click="onExportEelvlButtonClick"
-          >Export to EELVL
-        </PiButton>
+        <PiButton color="blue" @click="onExportEelvlButtonClick">Export to EELVL </PiButton>
       </v-row>
       <v-row>
         <input
@@ -138,18 +130,10 @@ async function onPwlvlFileChange(event: Event) {
           type="file"
           @change="onEelvlFileChange"
         />
-        <PiButton :loading="loading.eelvlImport.value" color="blue" @click="onImportEelvlButtonClick"
-          >Import from EELVL
-        </PiButton>
+        <PiButton color="blue" @click="onImportEelvlButtonClick">Import from EELVL </PiButton>
       </v-row>
       <v-row>
-        <PiButton
-          v-if="devViewEnabled"
-          :loading="loading.pwlvlExport.value"
-          color="blue"
-          @click="onExportPwlvlButtonClick"
-          >Export to PWLVL
-        </PiButton>
+        <PiButton v-if="devViewEnabled" color="blue" @click="onExportPwlvlButtonClick">Export to PWLVL </PiButton>
       </v-row>
       <v-row>
         <input
@@ -159,13 +143,7 @@ async function onPwlvlFileChange(event: Event) {
           type="file"
           @change="onPwlvlFileChange"
         />
-        <PiButton
-          v-if="devViewEnabled"
-          :loading="loading.pwlvlImport.value"
-          color="blue"
-          @click="onImportPwlvlButtonClick"
-          >Import from PWLVL
-        </PiButton>
+        <PiButton v-if="devViewEnabled" color="blue" @click="onImportPwlvlButtonClick">Import from PWLVL </PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>
