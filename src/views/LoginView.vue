@@ -17,7 +17,7 @@ import { withLoading } from '@/services/LoaderProxyService.ts'
 const email = ref('')
 const password = ref('')
 const worldId = ref('')
-const loading = { loading: ref(false) }
+const loading = { connect: ref(false) }
 const form = ref<VForm>()
 
 const router = useRouter()
@@ -30,27 +30,29 @@ watch(worldId, () => {
 })
 
 async function onConnectButtonClick() {
-  PWClientStore.worldId = worldId.value
-  PWClientStore.email = email.value
-  PWClientStore.password = password.value
-  if (!(await form.value!.validate()).valid) {
-    return
-  }
+  await withLoading(loading.connect, async () => {
+    PWClientStore.worldId = worldId.value
+    PWClientStore.email = email.value
+    PWClientStore.password = password.value
+    if (!(await form.value!.validate()).valid) {
+      return
+    }
 
-  PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
+    PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
 
-  await pwAuthenticate(getPwApiClient())
+    await pwAuthenticate(getPwApiClient())
 
-  PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
+    PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
 
-  registerCallbacks()
+    registerCallbacks()
 
-  await pwJoinWorld(getPwGameClient(), worldId.value)
+    await pwJoinWorld(getPwGameClient(), worldId.value)
 
-  PWClientStore.blockMappings = await getPwApiClient().getMappings()
-  PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)
+    PWClientStore.blockMappings = await getPwApiClient().getMappings()
+    PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)
 
-  await router.push({ name: BotViewRoute.name })
+    await router.push({ name: BotViewRoute.name })
+  })
 }
 
 function setDefaultWorldIdButtonClicked() {
@@ -60,12 +62,7 @@ function setDefaultWorldIdButtonClicked() {
 
 <template>
   <PiCardContainer>
-    <v-form
-      ref="form"
-      autocomplete="on"
-      validate-on="submit lazy"
-      @submit.prevent="withLoading(loading.loading, onConnectButtonClick)"
-    >
+    <v-form ref="form" autocomplete="on" validate-on="submit lazy" @submit.prevent="onConnectButtonClick">
       <v-col>
         <v-row>
           <PiTextField v-model="email" :required="true" label="Email"></PiTextField>
@@ -77,7 +74,7 @@ function setDefaultWorldIdButtonClicked() {
           <PiTextField v-model="worldId" :required="true" hint="World ID or World URL" label="World ID"></PiTextField>
         </v-row>
         <v-row>
-          <PiButton :loading="loading.loading.value" color="green" type="submit">Connect</PiButton>
+          <PiButton :loading="loading.connect.value" color="green" type="submit">Connect</PiButton>
         </v-row>
         <v-row>
           <PiButton v-if="devViewEnabled" color="blue" @click="setDefaultWorldIdButtonClicked"
