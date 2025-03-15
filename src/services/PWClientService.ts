@@ -5,6 +5,7 @@ import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
+import { GameError } from '@/classes/GameError.ts'
 
 export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   const authenticationResult = await pwApiClient.authenticate()
@@ -14,9 +15,9 @@ export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   }
 
   if ('message' in authenticationResult) {
-    throw new Error(authenticationResult.message)
+    throw new GameError(authenticationResult.message)
   } else {
-    throw new Error(GENERAL_CONSTANTS.GENERIC_ERROR)
+    throw new GameError(GENERAL_CONSTANTS.GENERIC_ERROR)
   }
 }
 
@@ -24,7 +25,7 @@ export async function pwJoinWorld(pwGameClient: PWGameClient, worldId: string): 
   try {
     await pwGameClient.joinWorld(worldId)
   } catch (e) {
-    throw new Error('Failed to join world. Check world ID. ' + (e as Error).message)
+    throw new GameError('Failed to join world. Check world ID. ' + (e as Error).message)
   }
 }
 

@@ -109,7 +109,12 @@ async function importCommandReceived(args: string[], playerId: number) {
 
   const pwApiClient = new PWApiClient(usePWClientStore().email, usePWClientStore().password)
 
-  await pwAuthenticate(pwApiClient)
+  try {
+    await pwAuthenticate(pwApiClient)
+  } catch (e) {
+    handleException(e)
+    return
+  }
 
   const pwGameClient = new PWGameClient(pwApiClient)
   const pwGameWorldHelper = new PWGameWorldHelper()
@@ -129,7 +134,12 @@ async function importCommandReceived(args: string[], playerId: number) {
     }
   })
 
-  await pwJoinWorld(pwGameClient, worldId)
+  try {
+    await pwJoinWorld(pwGameClient, worldId)
+  } catch (e) {
+    handleException(e)
+    return
+  }
 }
 
 async function testCommandReceived(_args: string[], playerId: number) {
