@@ -1,5 +1,9 @@
 PixelWalker copy bot changelog
 
+2025-03-15 Version 1.0.4
+- Bot: Fixed an issue where quickly selecting/pasting blocks would not work correctly
+- Website: Added loading overlay for all button actions to prevent accidental double clicks
+
 2025-03-10 Version 1.0.3
 - Allow pasting world URL in world ID during login
 

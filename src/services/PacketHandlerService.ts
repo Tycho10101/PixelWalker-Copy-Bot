@@ -32,6 +32,7 @@ import {
 import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
 import { handleException } from '@/utils/Exception.ts'
+import { GameError } from '@/classes/GameError.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -325,7 +326,7 @@ function applySmartTransformForBlocks(
   })
 }
 
-async function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
+function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
   try {
     placeBlockPacket(blockPacket)
     let allBlocks: WorldBlock[] = []
@@ -376,7 +377,7 @@ async function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, b
     }
 
     addUndoItem(botData, allBlocks, oldBlock, blockPos)
-    await placeMultipleBlocks(allBlocks)
+    void placeMultipleBlocks(allBlocks)
   } finally {
     botData.repeatVec = vec2(1, 1)
   }
@@ -440,7 +441,7 @@ function updateWorldImportFinished(data: ProtoGen.WorldBlockPlacedPacket) {
   }
 }
 
-async function worldBlockPlacedPacketReceived(
+function worldBlockPlacedPacketReceived(
   data: ProtoGen.WorldBlockPlacedPacket,
   states?: { player: IPlayer | undefined; oldBlocks: Block[]; newBlocks: Block[] },
 ) {
@@ -463,24 +464,31 @@ async function worldBlockPlacedPacketReceived(
     getPlayerBotData()[playerId] = createBotData()
   }
   const botData = getPlayerBotData()[playerId]
-  const blockPos = data.positions[0]
 
-  const oldBlock = states.oldBlocks[0]
-  const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
-  if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
-    if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
-      return
-    }
-
-    selectBlocks(blockPacket, botData, blockPos, oldBlock, playerId)
+  if (data.positions.length !== states.oldBlocks.length || states.oldBlocks.length !== states.newBlocks.length) {
+    handleException(new GameError('Packet block count and old/new block count mismatch detected'))
+    return
   }
 
-  if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
-    if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
-      return
+  for (let i = 0; i < data.positions.length; i++) {
+    const blockPos = data.positions[i]
+    const oldBlock = states.oldBlocks[i]
+    const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
+    if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
+      if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+        return
+      }
+
+      selectBlocks(blockPacket, botData, blockPos, oldBlock, playerId)
     }
 
-    await pasteBlocks(blockPacket, botData, blockPos, oldBlock)
+    if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
+      if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+        return
+      }
+
+      pasteBlocks(blockPacket, botData, blockPos, oldBlock)
+    }
   }
 }
 
