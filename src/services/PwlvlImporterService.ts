@@ -4,6 +4,7 @@ import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { pwCheckEditWhenImporting, pwCreateEmptyBlocks } from '@/services/PWClientService.ts'
+import { MessageService } from '@/services/MessageService.ts'
 
 export function getImportedFromPwlvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const blocks = pwCreateEmptyBlocks(getPwGameWorldHelper())
@@ -22,7 +23,7 @@ export function getImportedFromPwlvlData(fileData: ArrayBuffer): DeserialisedStr
   return blocks
 }
 
-export async function importFromPwlvl(fileData: ArrayBuffer) {
+export async function importFromPwlvl(fileData: ArrayBuffer): Promise<void> {
   if (!pwCheckEditWhenImporting(getPwGameWorldHelper())) {
     return
   }
@@ -30,9 +31,14 @@ export async function importFromPwlvl(fileData: ArrayBuffer) {
   const worldData = getImportedFromPwlvlData(fileData)
 
   const success = await placeWorldDataBlocks(worldData, vec2(0, 0))
+  let message: string
   if (success) {
-    sendGlobalChatMessage('Finished importing world.')
+    message = 'Finished importing world.'
+    sendGlobalChatMessage(message)
+    MessageService.success(message)
   } else {
-    sendGlobalChatMessage('ERROR! Failed to import world.')
+    message = 'ERROR! Failed to import world.'
+    sendGlobalChatMessage(message)
+    MessageService.error(message)
   }
 }
