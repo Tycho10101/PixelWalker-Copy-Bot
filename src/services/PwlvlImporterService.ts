@@ -20,6 +20,6 @@ export async function importFromPwlvl(fileData: ArrayBuffer) {
   if (success) {
     sendGlobalChatMessage('Finished importing world.')
   } else {
-    sendGlobalChatMessage('[ERROR] Failed to import world.')
+    sendGlobalChatMessage('ERROR! Failed to import world.')
   }
 }
