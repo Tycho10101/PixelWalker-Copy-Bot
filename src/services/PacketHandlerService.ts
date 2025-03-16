@@ -1,4 +1,4 @@
-import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwApiClient, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import {
   Block,
   BlockArgsHeadings,
@@ -60,6 +60,9 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
   const playerId = data.playerId
 
   switch (args[0].toLowerCase()) {
+    case '.placeall':
+      await placeallCommandReceived(args, playerId)
+      break
     case '.ping':
       sendPrivateChatMessage('pong', playerId)
       break
@@ -88,6 +91,45 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
       if (args[0].startsWith('.')) {
         sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
       }
+  }
+}
+
+async function placeallCommandReceived(_args: string[], playerId: number) {
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
+  if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
+    return
+  }
+
+  const listBlocks = await getPwApiClient().getListBlocks()
+  const sortedListBlocks = listBlocks.sort((a, b) => a.Id - b.Id)
+  const worldBlocks = []
+  for (let y = 0; y < 100; y++) {
+    for (let x = 0; x < 100; x++) {
+      const idx = y * 100 + x
+      if (idx >= sortedListBlocks.length) {
+        const success = await placeMultipleBlocks(worldBlocks)
+        if (success) {
+          sendPrivateChatMessage('Succesfully placed all blocks', playerId)
+        } else {
+          sendPrivateChatMessage('ERROR! Failed to place all blocks', playerId)
+        }
+
+        return
+      }
+      const singleBlock = sortedListBlocks[idx]
+      let worldBlock: WorldBlock
+      if(singleBlock.PaletteId.toUpperCase() as PwBlockName === PwBlockName.PORTAL_WORLD){
+        worldBlock = { block: new Block(singleBlock.Id, ['ewki341n7ve153l', 0]), layer: singleBlock.Layer, pos: vec2(x, y) }
+      }
+      else{
+        worldBlock = { block: new Block(singleBlock.Id), layer: singleBlock.Layer, pos: vec2(x, y) }
+      }
+      worldBlocks.push(worldBlock)
+      worldBlocks.push({ block: new Block(0), layer: singleBlock.Layer === 1 ? 0 : 1, pos: vec2(x, y) })
+    }
   }
 }
 
@@ -151,8 +193,8 @@ async function testCommandReceived(_args: string[], playerId: number) {
     return
   }
 
-  if (getPwGameWorldHelper().width !== 636 && getPwGameWorldHelper().height !== 50) {
-    sendPrivateChatMessage('ERROR! To perform tests, world must be 636x50 size.', playerId)
+  if (getPwGameWorldHelper().width < 100 || getPwGameWorldHelper().height < 100) {
+    sendPrivateChatMessage('ERROR! To perform tests, world must be at least 100x100 size.', playerId)
     return
   }
 
