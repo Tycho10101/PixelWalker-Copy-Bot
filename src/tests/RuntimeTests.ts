@@ -1,5 +1,6 @@
 import everyBlockEelvlFile from '@/tests/resources/every-block.eelvl?url'
 import everyBlockExportedEelvlPwlvlFile from '@/tests/resources/every-block-exported-eelvl.pwlvl?url'
+import everyBlockOriginalPwlvlFile from '@/tests/resources/every-block-original.pwlvl?url'
 import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
 import { deepStrictEqual } from 'node:assert'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
@@ -10,7 +11,7 @@ import { getExportedToEelvlData } from '@/services/EelvlExporterService.ts'
 
 export async function performRuntimeTests() {
   sendGlobalChatMessage('[TEST] Performing runtime tests...')
-  const tests = [testImport, testExport]
+  const tests = [testEelvlImport, testEelvlExportWithEelvlData, testEelvlExportWithPwlvlData]
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i]
     try {
@@ -47,7 +48,7 @@ function compareDeserialisedStructureData(receivedData: DeserialisedStructure, e
   }
 }
 
-async function testImport() {
+async function testEelvlImport() {
   const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
   const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
   const expectedData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
@@ -59,13 +60,28 @@ async function testImport() {
   compareDeserialisedStructureData(receivedData, expectedData)
 }
 
-async function testExport() {
+async function testEelvlExportWithEelvlData() {
   const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
   const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
   const expectedData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
 
   const [exportEelvlDataBuffer] = getExportedToEelvlData(expectedData)
   const receivedData = getImportedFromEelvlData(exportEelvlDataBuffer)
+
+  compareDeserialisedStructureData(receivedData, expectedData)
+}
+
+async function testEelvlExportWithPwlvlData() {
+  const everyBlockOriginalPwlvlRaw = await fetch(everyBlockOriginalPwlvlFile)
+  const everyBlockOriginalPwlvlArrayBuffer = await everyBlockOriginalPwlvlRaw.arrayBuffer()
+  const pwlvlData = getImportedFromPwlvlData(everyBlockOriginalPwlvlArrayBuffer)
+
+  const [exportPwlvlDataBuffer] = getExportedToEelvlData(pwlvlData)
+  const receivedData = getImportedFromEelvlData(exportPwlvlDataBuffer)
+
+  const everyBlockPwlvlRaw = await fetch(everyBlockExportedEelvlPwlvlFile)
+  const everyBlockPwlvlArrayBuffer = await everyBlockPwlvlRaw.arrayBuffer()
+  const expectedData = getImportedFromPwlvlData(everyBlockPwlvlArrayBuffer)
 
   compareDeserialisedStructureData(receivedData, expectedData)
 }
