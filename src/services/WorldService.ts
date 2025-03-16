@@ -40,7 +40,7 @@ async function placePackets(packets: SendableBlockPacket[], blockCount: number):
     placeBlockPacket(packet)
   }
 
-  const TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR = 10
+  const TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR = 5
   let total_attempts = 0
   while (total_attempts < TOTAL_WAIT_ATTEMPTS_BEFORE_ASSUMING_ERROR) {
     if (usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === 0) {
@@ -51,6 +51,8 @@ async function placePackets(packets: SendableBlockPacket[], blockCount: number):
       usePWClientStore().totalBlocksLeftToReceiveFromWorldImport === lastTotalBlocksLeftToReceiveFromWorldImportValue
     ) {
       total_attempts++
+    } else {
+      total_attempts = 0
     }
 
     lastTotalBlocksLeftToReceiveFromWorldImportValue = usePWClientStore().totalBlocksLeftToReceiveFromWorldImport
