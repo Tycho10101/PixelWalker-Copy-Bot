@@ -75,6 +75,11 @@ function setDefaultWorldIdButtonClicked() {
         <v-row>
           <PiTextField v-model="worldId" :required="true" hint="World ID or World URL" label="World ID"></PiTextField>
         </v-row>
+        <v-row> To use this bot, you need to use PixelWalker login credentials.</v-row>
+        <v-row>
+          Although this site does not collect login credential information, to feel safer, you can create second
+          PixelWalker account just for the bot.
+        </v-row>
         <v-row>
           <PiButton color="green" type="submit">Connect</PiButton>
         </v-row>
