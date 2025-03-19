@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-03-19 Version 1.0.5
+- Website: Fixed worldID field in Login form not extracting world ID of unsaved world URL
+
 2025-03-15 Version 1.0.4
 - Bot: Fixed an issue where quickly selecting/pasting blocks would not work correctly
 - Website: Added loading overlay for all button actions to prevent accidental double clicks
