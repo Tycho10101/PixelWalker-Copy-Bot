@@ -1,13 +1,9 @@
 # Pixel-Walker-Copy-Bot
 
-Bot for PixelWalker game that allows to copy/paste selected regions.
+PixelWalker bot allowing to build worlds quicker.
 
 Hosted on GitHub pages at:\
 http://piratux.github.io/Pixel-Walker-Copy-Bot/
-
-## Requirements to run project
-
-Node.js >= 22.12.0
 
 ## Feature overview
 
@@ -23,6 +19,10 @@ Features accessible via bot page:
 
 - Export PixelWalker world to .eelvl file
 - Import .eelvl file to PixelWalker world
+
+## Requirements to run project
+
+Node.js >= 22.12.0
 
 ## Local development
 
