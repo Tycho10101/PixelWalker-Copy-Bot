@@ -40,6 +40,16 @@ reflected live.
 
 When `package.json` changes, you need to run dev command again.
 
+### Linting errors
+
+This project automatically shows linting and typescript errors in the browser.
+
+If you want to list the errors in console, such that you can more easily navigate to source location you can run:
+
+```
+npm run lint
+```
+
 ### Local env files
 
 To have custom config only when running locally:
