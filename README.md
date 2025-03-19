@@ -5,6 +5,10 @@ Bot for PixelWalker game that allows to copy/paste selected regions.
 Hosted on GitHub pages at:\
 http://piratux.github.io/Pixel-Walker-Copy-Bot/
 
+## Requirements to run project
+
+Node.js >= 22.12.0
+
 ## Feature overview
 
 Features accessible via commands:
