@@ -59,7 +59,7 @@ To have custom config only when running locally:
 
 NOTE: All env file entries must start with `VITE_`, otherwise value will be undefined in code.
 
-## Test production build
+## Test production build (optional)
 
 At the root of project run:
 
