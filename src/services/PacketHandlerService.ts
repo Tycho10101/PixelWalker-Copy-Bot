@@ -1,7 +1,6 @@
 import { getPwApiClient, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import {
   Block,
-  BlockArgsHeadings,
   ComponentTypeHeader,
   createBlockPacket,
   IPlayer,
@@ -57,7 +56,7 @@ function playerJoinedPacketReceived(data: ProtoGen.PlayerJoinedPacket) {
 
 async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
   const args = data.message.split(' ')
-  const playerId = data.playerId
+  const playerId = data.playerId!
 
   switch (args[0].toLowerCase()) {
     case '.placeall':
@@ -121,10 +120,13 @@ async function placeallCommandReceived(_args: string[], playerId: number) {
       }
       const singleBlock = sortedListBlocks[idx]
       let worldBlock: WorldBlock
-      if(singleBlock.PaletteId.toUpperCase() as PwBlockName === PwBlockName.PORTAL_WORLD){
-        worldBlock = { block: new Block(singleBlock.Id, ['ewki341n7ve153l', 0]), layer: singleBlock.Layer, pos: vec2(x, y) }
-      }
-      else{
+      if ((singleBlock.PaletteId.toUpperCase() as PwBlockName) === PwBlockName.PORTAL_WORLD) {
+        worldBlock = {
+          block: new Block(singleBlock.Id, ['ewki341n7ve153l', 0]),
+          layer: singleBlock.Layer,
+          pos: vec2(x, y),
+        }
+      } else {
         worldBlock = { block: new Block(singleBlock.Id), layer: singleBlock.Layer, pos: vec2(x, y) }
       }
       worldBlocks.push(worldBlock)
@@ -357,9 +359,7 @@ function applySmartTransformForBlocks(
     const blockCopy = cloneDeep(pastedBlock)
 
     if (pastePosBlock.block.bId === nextBlockX.block.bId || pastePosBlock.block.bId === nextBlockY.block.bId) {
-      const pastedBlockName = getBlockName(pastePosBlock.block.bId)
-      const blockArgTypes: readonly ComponentTypeHeader[] =
-        BlockArgsHeadings[pastedBlockName as keyof typeof BlockArgsHeadings] ?? []
+      const blockArgTypes: ComponentTypeHeader[] = Block.getArgTypesByBlockId(pastePosBlock.block.bId)
       for (let i = 0; i < blockArgTypes.length; i++) {
         const blockArgType = blockArgTypes[i]
         if (blockArgType === ComponentTypeHeader.Int32) {
