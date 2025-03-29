@@ -16,8 +16,19 @@ import { BotState } from '@/enums/BotState.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { getBlockAt, getBlockName, placeBlockPacket, placeMultipleBlocks } from '@/services/WorldService.ts'
-import { addUndoItem, performRedo, performUndo } from '@/services/UndoRedoService.ts'
+import {
+  getBlockAt,
+  getBlockName,
+  placeBlockPacket,
+  placeMultipleBlocks,
+  placeWorldDataBlocks,
+} from '@/services/WorldService.ts'
+import {
+  addUndoItemDeserializedStructure,
+  addUndoItemWorldBlock,
+  performRedo,
+  performUndo,
+} from '@/services/UndoRedoService.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
 import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
@@ -136,19 +147,64 @@ async function placeallCommandReceived(_args: string[], playerId: number) {
 }
 
 async function importCommandReceived(args: string[], playerId: number) {
+  if (
+    getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX' &&
+    getPwGameWorldHelper().getPlayer(playerId)?.isWorldOwner !== true
+  ) {
+    sendPrivateChatMessage('ERROR! Command is exclusive to world owners', playerId)
+    return
+  }
+
   if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
     return
   }
 
-  if (args.length < 2) {
-    sendPrivateChatMessage('ERROR! Correct usage is .import world_id', playerId)
+  const ERROR_MESSAGE =
+    'ERROR! Correct usage is .import world_id [src_from_x src_from_y src_to_x src_to_y dest_to_x dest_to_y]'
+
+  if (![2, 8].includes(args.length)) {
+    sendPrivateChatMessage(ERROR_MESSAGE, playerId)
     return
   }
 
-  const worldId = getWorldIdIfUrl(args[1])
+  const partialImportUsed = args.length === 8
+  let srcFromX = 0
+  let srcFromY = 0
+  let srcToX = 0
+  let srcToY = 0
+  let destToX = 0
+  let destToY = 0
+  if (partialImportUsed) {
+    srcFromX = Number(args[2])
+    srcFromY = Number(args[3])
+    srcToX = Number(args[4])
+    srcToY = Number(args[5])
+    destToX = Number(args[6])
+    destToY = Number(args[7])
 
-  if (getPwGameWorldHelper().getPlayer(playerId)?.username !== 'PIRATUX') {
-    return
+    if (
+      !isFinite(srcFromX) ||
+      !isFinite(srcFromY) ||
+      !isFinite(srcToX) ||
+      !isFinite(srcToY) ||
+      !isFinite(destToX) ||
+      !isFinite(destToY)
+    ) {
+      sendPrivateChatMessage(ERROR_MESSAGE, playerId)
+      return
+    }
+
+    const mapWidth = getPwGameWorldHelper().width
+    const mapHeight = getPwGameWorldHelper().height
+    const pasteSizeX = srcToX - srcFromX + 1
+    const pasteSizeY = srcToY - srcFromY + 1
+    if (destToX < 0 || destToY < 0 || destToX + pasteSizeX > mapWidth || destToY + pasteSizeY > mapHeight) {
+      sendPrivateChatMessage(
+        `ERROR! Pasted area would be placed at pos (${destToX}, ${destToY}) with size (${pasteSizeX}, ${pasteSizeY}), but that's outside world bounds`,
+        playerId,
+      )
+      return
+    }
   }
 
   const pwApiClient = new PWApiClient(usePWClientStore().email, usePWClientStore().password)
@@ -163,14 +219,27 @@ async function importCommandReceived(args: string[], playerId: number) {
   const pwGameClient = new PWGameClient(pwApiClient)
   const pwGameWorldHelper = new PWGameWorldHelper()
 
+  const worldId = getWorldIdIfUrl(args[1])
+
   pwGameClient.addHook(pwGameWorldHelper.receiveHook).addCallback('playerInitPacket', async () => {
     try {
       pwGameClient.send('playerInitReceived')
 
-      const blocks = getAllWorldBlocks(pwGameWorldHelper)
+      const blocks = partialImportUsed
+        ? pwGameWorldHelper.sectionBlocks(srcFromX, srcFromY, srcToX, srcToY)
+        : getAllWorldBlocks(pwGameWorldHelper)
+
       sendGlobalChatMessage(`Importing world from ${worldId}`)
-      await pwClearWorld()
-      await importFromPwlvl(blocks.toBuffer())
+
+      if (partialImportUsed) {
+        const destPos = vec2(destToX, destToY)
+        const botData = getPlayerBotData()[playerId]
+        addUndoItemDeserializedStructure(botData, blocks, destPos)
+        await placeWorldDataBlocks(blocks, destPos)
+      } else {
+        await pwClearWorld()
+        await importFromPwlvl(blocks.toBuffer())
+      }
     } catch (e) {
       handleException(e)
     } finally {
@@ -207,9 +276,9 @@ function helpCommandReceived(args: string[], playerId: number) {
   if (args.length == 1) {
     sendPrivateChatMessage('Gold coin - select blocks', playerId)
     sendPrivateChatMessage('Blue coin - paste blocks', playerId)
-    sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo', playerId)
+    sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo .import', playerId)
     sendPrivateChatMessage('See more info about each command via .help [command]', playerId)
-    sendPrivateChatMessage('Bot is available here: piratux.github.io/Pixel-Walker-Copy-Bot/', playerId)
+    sendPrivateChatMessage('You can also use the bot: piratux.github.io/Pixel-Walker-Copy-Bot/', playerId)
     return
   }
 
@@ -229,9 +298,8 @@ function helpCommandReceived(args: string[], playerId: number) {
       break
     case 'paste':
     case '.paste':
-      sendPrivateChatMessage('.paste x_times y_times x_spacing y_spacing - repeat next paste (x/y)_times.', playerId)
-      sendPrivateChatMessage('(x/y)_spacing indicates gap size to leave between pastes.', playerId)
-      sendPrivateChatMessage('.paste x_times y_times - Shorthand for .paste x_times y_times 0 0', playerId)
+      sendPrivateChatMessage('.paste x_times y_times [x_spacing y_spacing] - repeat next paste (x/y)_times.', playerId)
+      sendPrivateChatMessage('(x/y)_spacing - gap size to leave between pastes.', playerId)
       sendPrivateChatMessage(`Example usage 1: .paste 2 3`, playerId)
       sendPrivateChatMessage(`Example usage 2: .paste 2 3 4 1`, playerId)
       break
@@ -256,17 +324,25 @@ function helpCommandReceived(args: string[], playerId: number) {
       break
     case 'undo':
     case '.undo':
-      sendPrivateChatMessage('.undo count - undoes last paste performed by bot "count" times', playerId)
-      sendPrivateChatMessage('.undo - Shorthand for .undo 1', playerId)
+      sendPrivateChatMessage('.undo [count] - undoes last paste performed by bot "count" times', playerId)
       sendPrivateChatMessage(`Example usage 1: .undo`, playerId)
       sendPrivateChatMessage(`Example usage 2: .undo 3`, playerId)
       break
     case 'redo':
     case '.redo':
-      sendPrivateChatMessage('.redo count - redoes last paste performed by bot "count" times', playerId)
-      sendPrivateChatMessage('.redo - Shorthand for .redo 1', playerId)
+      sendPrivateChatMessage('.redo [count] - redoes last paste performed by bot "count" times', playerId)
       sendPrivateChatMessage(`Example usage 1: .redo`, playerId)
       sendPrivateChatMessage(`Example usage 2: .redo 3`, playerId)
+      break
+    case 'import':
+    case '.import':
+      sendPrivateChatMessage('.import world_id [src_from_x src_from_y src_to_x src_to_y dest_to_x dest_to_y]', playerId)
+      sendPrivateChatMessage('Copies blocks from world with "world_id" and places them into current world', playerId)
+      sendPrivateChatMessage('src_from_(x/y) - top left corner position to copy from', playerId)
+      sendPrivateChatMessage('src_to_(x/y) - bottom right corner position to copy to', playerId)
+      sendPrivateChatMessage('dest_to_(x/y) - top left corner position to paste to', playerId)
+      sendPrivateChatMessage(`Example usage 1: .import https://pixelwalker.net/world/9gf53f4qf5z1f42`, playerId)
+      sendPrivateChatMessage(`Example usage 2: .import legacy:PW4gnKMssUb0I 2 4 25 16 2 4`, playerId)
       break
     default:
       sendPrivateChatMessage(`ERROR! Unrecognised command ${args[1]}`, playerId)
@@ -428,7 +504,7 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
       }
     }
 
-    addUndoItem(botData, allBlocks, oldBlock, blockPos)
+    addUndoItemWorldBlock(botData, allBlocks, oldBlock, blockPos)
     void placeMultipleBlocks(allBlocks)
   } finally {
     botData.repeatVec = vec2(1, 1)

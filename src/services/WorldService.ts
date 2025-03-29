@@ -10,6 +10,8 @@ import { WorldBlock } from '@/types/WorldBlock.ts'
 import { PwBlockName } from '@/enums/PwBlockName.ts'
 import { sleep } from '@/utils/Sleep.ts'
 import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
+import { vec2 } from '@basementuniverse/vec'
+import { cloneDeep } from 'lodash-es'
 
 export function getBlockAt(pos: Point, layer: number): Block {
   try {
@@ -72,4 +74,21 @@ export function getBlockName(pwBlockId: number): PwBlockName {
 
 export function getBlockId(pwBlockName: PwBlockName): number {
   return getBlockMappings()[pwBlockName.toLowerCase()]
+}
+
+export function convertDeserializedStructureToWorldBlocks(blocks: DeserialisedStructure, pos: vec2): WorldBlock[] {
+  const resultBlocks: WorldBlock[] = []
+  for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
+    for (let y = 0; y < blocks.height; y++) {
+      for (let x = 0; x < blocks.width; x++) {
+        const worldBlock = {
+          block: cloneDeep(blocks.blocks[layer][x][y]),
+          layer: layer,
+          pos: vec2(x + pos.x, y + pos.y),
+        }
+        resultBlocks.push(worldBlock)
+      }
+    }
+  }
+  return resultBlocks
 }
