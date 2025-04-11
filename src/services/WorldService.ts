@@ -1,7 +1,7 @@
 import { Block, createBlockPackets, DeserialisedStructure, Point, SendableBlockPacket } from 'pw-js-world'
 import {
-  getBlockMappings,
-  getBlockMappingsReversed,
+  getBlocksById,
+  getBlocksByName,
   getPwGameClient,
   getPwGameWorldHelper,
   usePWClientStore,
@@ -69,11 +69,11 @@ export function placeBlockPacket(blockPacket: SendableBlockPacket) {
 }
 
 export function getBlockName(pwBlockId: number): PwBlockName {
-  return getBlockMappingsReversed()[pwBlockId].toUpperCase() as PwBlockName
+  return getBlocksById()[pwBlockId].PaletteId.toUpperCase() as PwBlockName
 }
 
 export function getBlockId(pwBlockName: PwBlockName): number {
-  return getBlockMappings()[pwBlockName.toLowerCase()]
+  return getBlocksByName()[pwBlockName.toLowerCase()].Id
 }
 
 export function convertDeserializedStructureToWorldBlocks(blocks: DeserialisedStructure, pos: vec2): WorldBlock[] {

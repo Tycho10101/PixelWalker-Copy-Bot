@@ -19,9 +19,7 @@ export type BotData = {
   redoStack: UndoRedoItem[]
 }
 
-export type PlayerBotData = {
-  [playerId: number]: BotData
-}
+export type PlayerBotData = Record<number, BotData>
 
 export function createBotData(): BotData {
   return {

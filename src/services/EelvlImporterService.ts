@@ -12,7 +12,7 @@ import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
 import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
-import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { GameError } from '@/classes/GameError.ts'
 import { MessageService } from '@/services/MessageService.ts'
 
@@ -38,8 +38,8 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
   const pwMapWidth = getPwGameWorldHelper().width
   const pwMapHeight = getPwGameWorldHelper().height
 
-  const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
-  for (let layer = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
+  const pwBlock3DArray: [Block[][], Block[][], Block[][]] = [[], [], []]
+  for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
     pwBlock3DArray[layer] = []
     for (let x = 0; x < pwMapWidth; x++) {
       pwBlock3DArray[layer][x] = []

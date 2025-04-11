@@ -10,7 +10,6 @@ import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
 import { PWApiClient, PWGameClient } from 'pw-js-api'
 import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
 import { registerCallbacks } from '@/services/PacketHandlerService.ts'
-import { getReversedRecord } from '@/utils/ReverseRecord.ts'
 import { BotViewRoute } from '@/router/Routes.ts'
 import { withLoading } from '@/services/LoaderProxyService.ts'
 import PiOverlay from '@/components/PiOverlay.vue'
@@ -49,8 +48,7 @@ async function onConnectButtonClick() {
 
     await pwJoinWorld(getPwGameClient(), worldId.value)
 
-    PWClientStore.blockMappings = await getPwApiClient().getMappings()
-    PWClientStore.blockMappingsReversed = getReversedRecord(PWClientStore.blockMappings)
+    PWClientStore.initBlocks(await getPwApiClient().getListBlocks())
 
     await router.push({ name: BotViewRoute.name })
   })

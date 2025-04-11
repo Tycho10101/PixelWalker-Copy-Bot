@@ -1,18 +1,19 @@
 import { defineStore } from 'pinia'
-import { PWApiClient, PWGameClient } from 'pw-js-api'
+import { ListBlockResult, PWApiClient, PWGameClient } from 'pw-js-api'
 import { PWGameWorldHelper } from 'pw-js-world'
 import { computed, markRaw, ref } from 'vue'
 
 export const usePWClientStore = defineStore('PWClientStore', () => {
   let _pwGameClient: PWGameClient | undefined
   let _pwApiClient: PWApiClient | undefined
+  let _blocks: ListBlockResult[] = [] // sorted and uppercased blocks
   const pwGameWorldHelper = markRaw(new PWGameWorldHelper())
   const worldId = ref<string>('')
   const email = ref<string>('')
   const password = ref<string>('')
   const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
-  const blockMappings: Record<string, number> = {}
-  const blockMappingsReversed: Record<number, string> = {}
+  const blocksById: Record<number, ListBlockResult> = {}
+  const blocksByName: Record<string, ListBlockResult> = {}
 
   const pwGameClient = computed<PWGameClient | undefined>(() => {
     if (!_pwApiClient) {
@@ -36,6 +37,15 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     _pwApiClient = client
   }
 
+  function initBlocks(blocks: ListBlockResult[]) {
+    _blocks = blocks.sort((a, b) => a.Id - b.Id)
+    _blocks = _blocks.map((block) => ({ ...block, PaletteId: block.PaletteId.toUpperCase() }))
+    blocks.forEach((block) => {
+      blocksById[block.Id] = block
+      blocksByName[block.PaletteId] = block
+    })
+  }
+
   return {
     pwGameClient,
     pwApiClient,
@@ -43,11 +53,13 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     worldId,
     email,
     password,
-    blockMappings,
-    blockMappingsReversed,
+    totalBlocksLeftToReceiveFromWorldImport,
+    _blocks,
+    blocksById,
+    blocksByName,
     setPwGameClient,
     setPwApiClient,
-    totalBlocksLeftToReceiveFromWorldImport,
+    initBlocks,
   }
 })
 
@@ -63,10 +75,14 @@ export function getPwGameWorldHelper(): PWGameWorldHelper {
   return usePWClientStore().pwGameWorldHelper
 }
 
-export function getBlockMappings(): Record<string, number> {
-  return usePWClientStore().blockMappings
+export function getBlocks(): ListBlockResult[] {
+  return usePWClientStore()._blocks
 }
 
-export function getBlockMappingsReversed(): Record<number, string> {
-  return usePWClientStore().blockMappingsReversed
+export function getBlocksById(): Record<number, ListBlockResult> {
+  return usePWClientStore().blocksById
+}
+
+export function getBlocksByName(): Record<string, ListBlockResult> {
+  return usePWClientStore().blocksByName
 }

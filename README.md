@@ -59,7 +59,7 @@ To have custom config only when running locally:
 
 NOTE: All env file entries must start with `VITE_`, otherwise value will be undefined in code.
 
-## Test production build (optional)
+## Test production build
 
 At the root of project run:
 
@@ -78,3 +78,14 @@ Vite's HMR won't work for production build, so you need to run build and preview
 This repository contains runtime tests.
 
 To use them, run `.test` while in game.
+
+## Disable ESLint/Vue-tsc
+
+ESLint and vue-tsc may be sometimes unwanted during development.
+
+You can disable them by adding the following lines as the top of the file:
+
+```ts
+/* eslint-disable */
+// @ts-nocheck
+```

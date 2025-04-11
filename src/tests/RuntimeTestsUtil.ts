@@ -1,7 +1,7 @@
 import { DeserialisedStructure } from 'pw-js-world'
 import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
 import { deepStrictEqual } from 'node:assert'
-import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
 import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
@@ -14,7 +14,7 @@ export function compareDeserialisedStructureData(
 ) {
   deepStrictEqual(receivedData.width, expectedData.width)
   deepStrictEqual(receivedData.height, expectedData.height)
-  for (let layer = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
+  for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
     for (let x = 0; x < receivedData.width; x++) {
       for (let y = 0; y < receivedData.height; y++) {
         const receivedBlock = receivedData.blocks[layer][x][y]

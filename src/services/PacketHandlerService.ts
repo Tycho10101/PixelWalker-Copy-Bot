@@ -1,4 +1,4 @@
-import { getPwApiClient, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import {
   Block,
   ComponentTypeHeader,
@@ -43,6 +43,7 @@ import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
 import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
 import { handleException } from '@/utils/Exception.ts'
 import { GameError } from '@/classes/GameError.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 
 export function registerCallbacks() {
   getPwGameClient()
@@ -113,8 +114,7 @@ async function placeallCommandReceived(_args: string[], playerId: number) {
     return
   }
 
-  const listBlocks = await getPwApiClient().getListBlocks()
-  const sortedListBlocks = listBlocks.sort((a, b) => a.Id - b.Id)
+  const sortedListBlocks = getBlocks()
   const worldBlocks = []
   for (let y = 0; y < 100; y++) {
     for (let x = 0; x < 100; x++) {
@@ -130,18 +130,23 @@ async function placeallCommandReceived(_args: string[], playerId: number) {
         return
       }
       const singleBlock = sortedListBlocks[idx]
+      const pos = vec2(x, y)
       let worldBlock: WorldBlock
-      if ((singleBlock.PaletteId.toUpperCase() as PwBlockName) === PwBlockName.PORTAL_WORLD) {
+      if ((singleBlock.PaletteId as PwBlockName) === PwBlockName.PORTAL_WORLD) {
         worldBlock = {
           block: new Block(singleBlock.Id, ['ewki341n7ve153l', 0]),
           layer: singleBlock.Layer,
-          pos: vec2(x, y),
+          pos,
         }
       } else {
-        worldBlock = { block: new Block(singleBlock.Id), layer: singleBlock.Layer, pos: vec2(x, y) }
+        worldBlock = { block: new Block(singleBlock.Id), layer: singleBlock.Layer, pos }
       }
       worldBlocks.push(worldBlock)
-      worldBlocks.push({ block: new Block(0), layer: singleBlock.Layer === 1 ? 0 : 1, pos: vec2(x, y) })
+      for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
+        if (layer !== singleBlock.Layer) {
+          worldBlocks.push({ block: new Block(0), layer, pos })
+        }
+      }
     }
   }
 }
@@ -647,16 +652,21 @@ function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, to
         foregroundBlock = oldBlock
       }
 
-      data.push({
-        block: foregroundBlock,
-        pos: vec2(x, y),
-        layer: LayerType.Foreground,
-      })
-      data.push({
-        block: getBlockAt(sourcePos, LayerType.Background),
-        pos: vec2(x, y),
-        layer: LayerType.Background,
-      })
+      for (let i = 0; i < TOTAL_PW_LAYERS; i++) {
+        if ((i as LayerType) !== LayerType.Foreground) {
+          data.push({
+            block: getBlockAt(sourcePos, i),
+            pos: vec2(x, y),
+            layer: i,
+          })
+        } else {
+          data.push({
+            block: foregroundBlock,
+            pos: vec2(x, y),
+            layer: LayerType.Foreground,
+          })
+        }
+      }
     }
   }
   return data

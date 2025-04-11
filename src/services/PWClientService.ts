@@ -32,7 +32,7 @@ export async function pwJoinWorld(pwGameClient: PWGameClient, worldId: string): 
 export function pwCreateEmptyBlocks(pwGameWorldHelper: PWGameWorldHelper): DeserialisedStructure {
   const width = pwGameWorldHelper.width
   const height = pwGameWorldHelper.height
-  const pwBlock3DArray: [Block[][], Block[][]] = [[], []]
+  const pwBlock3DArray: [Block[][], Block[][], Block[][]] = [[], [], []]
   for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
     pwBlock3DArray[layer] = []
     for (let x = 0; x < width; x++) {
