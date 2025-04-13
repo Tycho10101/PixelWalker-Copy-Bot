@@ -1,5 +1,5 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
-import { EelvlBlockId, hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/enums/EelvlBlockId.ts'
+import { EelvlBlockId, EelvlBlockIdKeys } from '@/gen/EelvlBlockId.ts'
 import { getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { Block, DeserialisedStructure, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
@@ -7,13 +7,15 @@ import { downloadFile } from '@/services/FileService.ts'
 import ManyKeysMap from 'many-keys-map'
 import { vec2 } from '@basementuniverse/vec'
 import { EelvlFileHeader } from '@/types/WorldData.ts'
-import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { PwBlockName } from '@/gen/PwBlockName.ts'
 import { getBlockName } from '@/services/WorldService.ts'
 import { EelvlLayer } from '@/enums/EelvlLayer.ts'
-import { TOTAL_EELVL_LAYERS } from '@/constants/General.ts'
+import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { EelvlBlockEntry } from '@/types/EelvlBlockEntry.ts'
 import { getAllWorldBlocks } from '@/services/PWClientService.ts'
 import { GameError } from '@/classes/GameError.ts'
+import { getEelvlBlocksById } from '@/stores/EelvlClientStore.ts'
+import { hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/services/EelvlUtilService.ts'
 
 function addBlocksEntry(blocks: ManyKeysMap<EelvlBlockEntry, vec2[]>, key: EelvlBlockEntry, x: number, y: number) {
   if (!blocks.has(key)) {
@@ -56,17 +58,27 @@ export function getExportedToEelvlData(worldBlocks: DeserialisedStructure): [Buf
   bytes.writeUTF(world.ownerId)
 
   const blocks = new ManyKeysMap<EelvlBlockEntry, vec2[]>()
-  for (let layer: number = 0; layer < TOTAL_EELVL_LAYERS; layer++) {
+  for (let pwLayer: number = 0; pwLayer < TOTAL_PW_LAYERS; pwLayer++) {
     for (let y: number = 0; y < getPwGameWorldHelper().height; y++) {
       for (let x: number = 0; x < getPwGameWorldHelper().width; x++) {
-        const pwBlock = worldBlocks.blocks[layer][x][y]
-        const eelvlLayer = mapLayerPwToEelvl(layer)
-        const eelvlBlock = mapBlockIdPwToEelvl(pwBlock, eelvlLayer)
-        const eelvlBlockId: number = eelvlBlock.blockId
-
-        if (eelvlBlockId as EelvlBlockId === EelvlBlockId.EMPTY) {
+        const pwBlock = worldBlocks.blocks[pwLayer][x][y]
+        // EELVL can't have foreground block and water block (or any other overlay block) on single block
+        // We give priority to foreground block over other overlay blocks
+        if (
+          ![LayerType.Foreground, LayerType.Background].includes(pwLayer) &&
+          getBlockName(worldBlocks.blocks[LayerType.Foreground][x][y].bId) !== PwBlockName.EMPTY
+        ) {
           continue
         }
+
+        const eelvlBlock: EelvlBlock = mapBlockIdPwToEelvl(pwBlock, pwLayer)
+        const eelvlBlockId: number = eelvlBlock.blockId
+
+        if ((eelvlBlockId as EelvlBlockId) === EelvlBlockId.EMPTY) {
+          continue
+        }
+
+        const eelvlLayer: EelvlLayer = getEelvlLayer(eelvlBlockId)
 
         const blockEntryKey: EelvlBlockEntry = getBlockEntryKey(eelvlBlockId, eelvlBlock, eelvlLayer)
         for (const key of blockEntryKey) {
@@ -109,18 +121,11 @@ export function exportToEelvl() {
   downloadFile(byteBuffer, fileName)
 }
 
-function mapLayerPwToEelvl(pwLayer: number) {
-  switch (pwLayer as LayerType) {
-    case LayerType.Background:
-      return EelvlLayer.BACKGROUND
-    case LayerType.Foreground:
-      return EelvlLayer.FOREGROUND
-    default:
-      throw new GameError(`Unknown PW layer: ${pwLayer}`)
-  }
+function getEelvlLayer(eelvlBlockId: number): EelvlLayer {
+  return getEelvlBlocksById()[eelvlBlockId].layer
 }
 
-function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLayer: number): EelvlBlockEntry {
+function getBlockEntryKey(eelvlBlockId: number, eelvlBlock: EelvlBlock, eelvlLayer: EelvlLayer): EelvlBlockEntry {
   return [eelvlBlockId, eelvlLayer, ...getBlockArgs(eelvlBlockId, eelvlBlock)]
 }
 
@@ -161,7 +166,7 @@ function writePositionsByteArrays(bytes: ByteArray, positions: vec2[]) {
   bytes.writeBytes(positionsY)
 }
 
-function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock {
+function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
   const pwBlockName = getBlockName(pwBlock.bId)
 
   switch (pwBlockName) {
@@ -1137,16 +1142,16 @@ function mapBlockIdPwToEelvl(pwBlock: Block, eelvlLayer: EelvlLayer): EelvlBlock
       return { blockId: EelvlBlockId.TOXIC_SEWER_DRAIN_EMPTY, intParameter: 4 }
     default: {
       if (pwBlockName === undefined) {
-        if (eelvlLayer === EelvlLayer.FOREGROUND) {
+        if (pwLayer === LayerType.Foreground) {
           return createMissingBlockSign(`Unknown Block ID: ${pwBlock.bId}`)
         } else {
           return { blockId: EelvlBlockId.EMPTY }
         }
       }
 
-      const eelvlBlockId: EelvlBlockId = EelvlBlockId[pwBlockName as keyof typeof EelvlBlockId]
+      const eelvlBlockId: EelvlBlockId = EelvlBlockId[pwBlockName as EelvlBlockIdKeys]
       if (eelvlBlockId === undefined) {
-        if (eelvlLayer === EelvlLayer.FOREGROUND) {
+        if (pwLayer === LayerType.Foreground) {
           return createMissingBlockSign(`Missing EELVL block: ${pwBlockName}`)
         } else {
           return { blockId: EelvlBlockId.EMPTY }

@@ -1,4 +1,4 @@
-import { getBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import {
   Block,
   ComponentTypeHeader,
@@ -29,7 +29,7 @@ import {
   performRedo,
   performUndo,
 } from '@/services/UndoRedoService.ts'
-import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { PwBlockName } from '@/gen/PwBlockName.ts'
 import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
 import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
 import {
@@ -114,7 +114,7 @@ async function placeallCommandReceived(_args: string[], playerId: number) {
     return
   }
 
-  const sortedListBlocks = getBlocks()
+  const sortedListBlocks = getPwBlocks()
   const worldBlocks = []
   for (let y = 0; y < 100; y++) {
     for (let x = 0; x < 100; x++) {

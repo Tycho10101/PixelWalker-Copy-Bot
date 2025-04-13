@@ -1,13 +1,13 @@
 import { Block, createBlockPackets, DeserialisedStructure, Point, SendableBlockPacket } from 'pw-js-world'
 import {
-  getBlocksById,
-  getBlocksByName,
+  getPwBlocksById,
+  getPwBlocksByName,
   getPwGameClient,
   getPwGameWorldHelper,
   usePWClientStore,
 } from '@/stores/PWClientStore.ts'
 import { WorldBlock } from '@/types/WorldBlock.ts'
-import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { PwBlockName } from '@/gen/PwBlockName.ts'
 import { sleep } from '@/utils/Sleep.ts'
 import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { vec2 } from '@basementuniverse/vec'
@@ -69,11 +69,11 @@ export function placeBlockPacket(blockPacket: SendableBlockPacket) {
 }
 
 export function getBlockName(pwBlockId: number): PwBlockName {
-  return getBlocksById()[pwBlockId].PaletteId.toUpperCase() as PwBlockName
+  return getPwBlocksById()[pwBlockId].PaletteId.toUpperCase() as PwBlockName
 }
 
 export function getBlockId(pwBlockName: PwBlockName): number {
-  return getBlocksByName()[pwBlockName.toLowerCase()].Id
+  return getPwBlocksByName()[pwBlockName.toLowerCase()].Id
 }
 
 export function convertDeserializedStructureToWorldBlocks(blocks: DeserialisedStructure, pos: vec2): WorldBlock[] {

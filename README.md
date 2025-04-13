@@ -89,3 +89,17 @@ You can disable them by adding the following lines as the top of the file:
 /* eslint-disable */
 // @ts-nocheck
 ```
+
+## When block names change in `/listblocks`
+
+Actions to be done:
+
+- Block names in `EelvlBlocks.ts` need to be updated
+- The following needs to be run
+
+```
+npm run gen-files
+```
+
+- `*.pwlvl` files need to be updated in `tests/resources`
+- Run `.test` in game

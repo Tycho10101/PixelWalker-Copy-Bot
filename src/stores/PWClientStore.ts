@@ -75,14 +75,16 @@ export function getPwGameWorldHelper(): PWGameWorldHelper {
   return usePWClientStore().pwGameWorldHelper
 }
 
-export function getBlocks(): ListBlockResult[] {
+export function getPwBlocks(): ListBlockResult[] {
   return usePWClientStore()._blocks
 }
 
-export function getBlocksById(): Record<number, ListBlockResult> {
+// TODO: Think what to do about blockid = 0 as there is more than 1 entry
+export function getPwBlocksById(): Record<number, ListBlockResult> {
   return usePWClientStore().blocksById
 }
 
-export function getBlocksByName(): Record<string, ListBlockResult> {
+// TODO: Think what to do about blockname = EMPTY as there is more than 1 entry
+export function getPwBlocksByName(): Record<string, ListBlockResult> {
   return usePWClientStore().blocksByName
 }

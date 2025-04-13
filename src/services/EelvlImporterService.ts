@@ -1,20 +1,19 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
-import { EelvlBlockId, hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/enums/EelvlBlockId.ts'
+import { EelvlBlockId } from '@/gen/EelvlBlockId.ts'
 import type { BlockArg } from 'pw-js-world'
 import { Block, DeserialisedStructure, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { EelvlFileHeader } from '@/types/WorldData.ts'
-import { PwBlockName } from '@/enums/PwBlockName.ts'
+import { PwBlockName, PwBlockNameKeys } from '@/gen/PwBlockName.ts'
 import { getBlockId, placeWorldDataBlocks } from '@/services/WorldService.ts'
-import { EelvlLayer } from '@/enums/EelvlLayer.ts'
-import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { getPwBlocksById, getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
 import { cloneDeep } from 'lodash-es'
 import { pwCheckEditWhenImporting } from '@/services/PWClientService.ts'
 import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
-import { GameError } from '@/classes/GameError.ts'
 import { MessageService } from '@/services/MessageService.ts'
+import { hasEelvlBlockOneIntParameter, isEelvlNpc } from '@/services/EelvlUtilService.ts'
 
 export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const bytes = new ByteArray(new Uint8Array(fileData))
@@ -51,12 +50,16 @@ export function getImportedFromEelvlData(fileData: ArrayBuffer): DeserialisedStr
 
   while (bytes.hashposition < bytes.length) {
     const eelvlBlockId = bytes.readInt()
-    const eelvlLayer = bytes.readInt()
+    bytes.readInt() // eelvlLayer
     const blockPositions = readPositionsByteArrays(bytes)
-    const eelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
+    const eelvlBlock: EelvlBlock = readEelvlBlock(bytes, eelvlBlockId)
+
+    if ((eelvlBlockId as EelvlBlockId) === EelvlBlockId.EMPTY) {
+      continue
+    }
 
     const pwBlock: Block = mapBlockIdEelvlToPw(eelvlBlock)
-    const pwLayer = mapLayerEelvlToPw(eelvlLayer)
+    const pwLayer = getPwLayer(pwBlock.bId)
     for (const pos of blockPositions) {
       if (pos.x >= 0 && pos.y >= 0 && pos.x < pwMapWidth && pos.y < pwMapHeight) {
         pwBlock3DArray[pwLayer][pos.x][pos.y] = cloneDeep(pwBlock)
@@ -88,15 +91,8 @@ export async function importFromEelvl(fileData: ArrayBuffer) {
   }
 }
 
-function mapLayerEelvlToPw(eelvlLayer: number) {
-  switch (eelvlLayer as EelvlLayer) {
-    case EelvlLayer.BACKGROUND:
-      return LayerType.Background
-    case EelvlLayer.FOREGROUND:
-      return LayerType.Foreground
-    default:
-      throw new GameError(`Unknown EELVL layer: ${eelvlLayer}`)
-  }
+function getPwLayer(pwBlockId: number): LayerType {
+  return getPwBlocksById()[pwBlockId].Layer as LayerType
 }
 
 function readEelvlBlock(bytes: ByteArray, eelvlBlockId: number) {
@@ -1580,7 +1576,7 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock): Block {
       if (eelvlBlockName === undefined) {
         return createMissingBlockSign(`Unknown Block ID: ${eelvlBlock.blockId}`)
       }
-      const pwBlockName: PwBlockName = PwBlockName[eelvlBlockName as keyof typeof PwBlockName]
+      const pwBlockName: PwBlockName = PwBlockName[eelvlBlockName as PwBlockNameKeys]
       if (pwBlockName === undefined) {
         return createMissingBlockSign(`Missing PixelWalker block: ${eelvlBlockName}`)
       }
