@@ -1420,10 +1420,19 @@
 			"Missing EELVL block: COUNTER_MAGENTA_CONSUMABLE_SET",
 			"Missing EELVL block: COUNTER_MAGENTA_REUSABLE",
 			"Missing EELVL block: COUNTER_MAGENTA_REUSABLE_SET",
+			"Missing EELVL block: HAZARD_SPIKES_CYAN_UP",
 			"Missing EELVL block: COUNTER_MAGENTA_DOOR",
+			"Missing EELVL block: HAZARD_SPIKES_CYAN_RIGHT",
 			"Missing EELVL block: COUNTER_MAGENTA_GATE",
+			"Missing EELVL block: HAZARD_SPIKES_CYAN_DOWN",
+			"Missing EELVL block: HAZARD_SPIKES_CYAN_LEFT",
+			"Missing EELVL block: HAZARD_SPIKES_CYAN_CENTER",
+			"Missing EELVL block: HAZARD_SPIKES_PURPLE_UP",
 			false,
+			"Missing EELVL block: HAZARD_SPIKES_PURPLE_RIGHT",
 			"EFFECTS_SPEED speed (%): 0",
+			"Missing EELVL block: HAZARD_SPIKES_PURPLE_DOWN",
+			"Missing EELVL block: HAZARD_SPIKES_PURPLE_LEFT",
 			"Missing EELVL block: HAZARD_SPIKES_PURPLE_CENTER",
 			"Missing EELVL block: HALLOWEEN_COBWEB_BOTTOM_LEFT",
 			"Missing EELVL block: HALLOWEEN_COBWEB_BOTTOM_RIGHT",
@@ -1442,9 +1451,11 @@
 			"Missing EELVL block: GILDED_BRONZE_BASIC",
 			"Missing EELVL block: GILDED_SILVER_BASIC",
 			"Missing EELVL block: GILDED_BRONZE_BRICK",
+			"Missing EELVL block: RESTAURANT_PLATE_CAKE_CHOCOLATE",
 			"Missing EELVL block: COUNTER_WHITE_CONSUMABLE_SET",
 			"Missing EELVL block: MINERALS_PURPLE",
 			"Missing EELVL block: GILDED_SILVER_BRICK",
+			"Missing EELVL block: RESTAURANT_PLATE_PIE_CHERRY",
 			"Missing EELVL block: COUNTER_WHITE_REUSABLE",
 			"Missing EELVL block: COUNTER_WHITE_REUSABLE_SET",
 			"Missing EELVL block: GILDED_BRONZE_CHISELED",
@@ -4669,13 +4680,38 @@
 					],
 					[
 						41,
-						2,
+						1,
 						108
+					],
+					[
+						41,
+						2,
+						109
+					],
+					[
+						42,
+						1,
+						110
 					],
 					[
 						42,
 						2,
-						109
+						111
+					],
+					[
+						43,
+						1,
+						112
+					],
+					[
+						44,
+						1,
+						113
+					],
+					[
+						45,
+						1,
+						114
 					],
 					[
 						51,
@@ -4683,84 +4719,104 @@
 						13
 					],
 					[
+						51,
+						1,
+						115
+					],
+					[
+						52,
+						1,
+						117
+					],
+					[
 						53,
 						0,
-						111
+						118
+					],
+					[
+						53,
+						1,
+						119
+					],
+					[
+						54,
+						1,
+						120
 					],
 					[
 						55,
 						1,
-						112
+						121
 					],
 					[
 						55,
 						5,
-						113
+						122
 					],
 					[
 						56,
 						5,
-						114
+						123
 					],
 					[
 						62,
 						3,
-						116
+						125
 					],
 					[
 						62,
 						11,
-						117
+						126
 					],
 					[
 						63,
 						3,
-						118
+						127
 					],
 					[
 						63,
 						11,
-						119
+						128
 					],
 					[
 						67,
 						0,
-						120
+						129
 					],
 					[
 						69,
 						0,
-						121
+						130
 					],
 					[
 						74,
 						4,
-						123
+						132
 					],
 					[
 						75,
 						4,
-						124
+						133
 					],
 					[
 						77,
 						4,
-						125
+						134
 					],
 					[
 						79,
 						4,
-						126
+						135
 					],
 					[
 						80,
 						9,
-						127
+						136
 					],
 					[
 						81,
 						9,
-						128
+						137
 					],
 					[
 						83,
@@ -4770,72 +4826,82 @@
 					[
 						83,
 						9,
-						129
+						138
+					],
+					[
+						83,
+						13,
+						139
 					],
 					[
 						84,
 						1,
-						130
+						140
 					],
 					[
 						84,
 						3,
-						131
+						141
 					],
 					[
 						84,
 						9,
-						132
+						142
+					],
+					[
+						84,
+						13,
+						143
 					],
 					[
 						85,
 						1,
-						133
+						144
 					],
 					[
 						86,
 						1,
-						134
+						145
 					],
 					[
 						86,
 						9,
-						135
+						146
 					],
 					[
 						87,
 						1,
-						136
+						147
 					],
 					[
 						87,
 						9,
-						137
+						148
 					],
 					[
 						88,
 						1,
-						138
+						149
 					],
 					[
 						89,
 						1,
-						139
+						150
 					],
 					[
 						89,
 						9,
-						140
+						151
 					],
 					[
 						90,
 						1,
-						141
+						152
 					],
 					[
 						90,
 						9,
-						142
+						153
 					],
 					[
 						91,
@@ -4845,32 +4911,32 @@
 					[
 						92,
 						1,
-						143
+						154
 					],
 					[
 						92,
 						9,
-						144
+						155
 					],
 					[
 						93,
 						1,
-						145
+						156
 					],
 					[
 						93,
 						9,
-						146
+						157
 					],
 					[
 						94,
 						1,
-						147
+						158
 					],
 					[
 						95,
 						1,
-						148
+						159
 					],
 					[
 						96,
@@ -4880,17 +4946,17 @@
 					[
 						97,
 						1,
-						149
+						160
 					],
 					[
 						98,
 						1,
-						150
+						161
 					],
 					[
 						99,
 						1,
-						151
+						162
 					]
 				],
 				[]
@@ -5754,7 +5820,7 @@
 					[
 						52,
 						0,
-						110
+						116
 					]
 				],
 				[]
@@ -6010,7 +6076,7 @@
 					[
 						54,
 						0,
-						110
+						116
 					]
 				],
 				[]
@@ -6883,7 +6949,7 @@
 					[
 						68,
 						0,
-						120
+						129
 					]
 				],
 				[]
@@ -7134,7 +7200,7 @@
 					[
 						70,
 						0,
-						120
+						129
 					]
 				],
 				[]
@@ -7255,7 +7321,7 @@
 					[
 						71,
 						0,
-						120
+						129
 					]
 				],
 				[]
@@ -8054,14 +8120,6 @@
 					[
 						26,
 						1
-					],
-					[
-						41,
-						1
-					],
-					[
-						51,
-						1
 					]
 				],
 				[]
@@ -8172,14 +8230,6 @@
 					[
 						27,
 						1
-					],
-					[
-						42,
-						1
-					],
-					[
-						52,
-						1
 					]
 				],
 				[]
@@ -8289,14 +8339,6 @@
 				[
 					[
 						28,
-						1
-					],
-					[
-						43,
-						1
-					],
-					[
-						53,
 						1
 					]
 				],
@@ -8428,14 +8470,6 @@
 					[
 						29,
 						1
-					],
-					[
-						44,
-						1
-					],
-					[
-						54,
-						1
 					]
 				],
 				[]
@@ -8565,10 +8599,6 @@
 				[
 					[
 						30,
-						1
-					],
-					[
-						45,
 						1
 					]
 				],
@@ -8942,7 +8972,7 @@
 					[
 						59,
 						1,
-						115
+						124
 					]
 				],
 				[]
@@ -9063,7 +9093,7 @@
 					[
 						60,
 						1,
-						115
+						124
 					]
 				],
 				[]
@@ -9194,7 +9224,7 @@
 					[
 						61,
 						1,
-						115
+						124
 					]
 				],
 				[]
@@ -13033,7 +13063,7 @@
 					[
 						74,
 						0,
-						122,
+						131,
 						28
 					]
 				],
@@ -13554,14 +13584,6 @@
 				[
 					[
 						79,
-						13
-					],
-					[
-						83,
-						13
-					],
-					[
-						84,
 						13
 					]
 				],
