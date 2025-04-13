@@ -23,7 +23,7 @@
     "lodash-es": "^4.17.21",
     "many-keys-map": "^2.0.1",
     "pinia": "^3.0.1",
-    "pw-js-api": "^0.3.1",
+    "pw-js-api": "^0.3.2",
     "pw-js-world": "^0.4.1-dev.766d8c6",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
