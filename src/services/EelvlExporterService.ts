@@ -277,30 +277,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
     // TODO: Awaiting fix
     case PwBlockName.CHRISTMAS_STRING_LIGHT_BOTTOM_GREEN:
       return { blockId: EelvlBlockId.CHRISTMAS_STRING_LIGHT_BOTTOM_RED, intParameter: 3 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_BLUE_STRAIGHT_HORIZONTAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_BLUE_STRAIGHT_VERTICAL, intParameter: 1 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_BLUE_STRAIGHT_VERTICAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_BLUE_STRAIGHT_VERTICAL, intParameter: 0 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_GREEN_STRAIGHT_HORIZONTAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_GREEN_STRAIGHT_VERTICAL, intParameter: 1 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_GREEN_STRAIGHT_VERTICAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_GREEN_STRAIGHT_VERTICAL, intParameter: 0 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_ORANGE_STRAIGHT_HORIZONTAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_ORANGE_STRAIGHT_VERITICAL, intParameter: 1 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_ORANGE_STRAIGHT_VERITICAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_ORANGE_STRAIGHT_VERITICAL, intParameter: 0 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_RED_STRAIGHT_HORIZONTAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_RED_STRAIGHT_VERTICAL, intParameter: 1 }
-    // TODO: Awaiting fix
-    case PwBlockName.SCIFI_LASER_RED_STRAIGHT_VERTICAL:
-      return { blockId: EelvlBlockId.SCIFI_LASER_RED_STRAIGHT_VERTICAL, intParameter: 0 }
     default: {
       const mappedPwBlock = getPwBlocksById()[pwBlock.bId]
 
@@ -313,7 +289,7 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       }
 
       if (mappedPwBlock.LegacyId !== undefined) {
-        if (mappedPwBlock.LegacyMorph !== undefined && mappedPwBlock.LegacyMorph.length === 1) {
+        if (mappedPwBlock.LegacyMorph !== undefined) {
           return { blockId: mappedPwBlock.LegacyId, intParameter: mappedPwBlock.LegacyMorph[0] }
         } else {
           return { blockId: mappedPwBlock.LegacyId }
