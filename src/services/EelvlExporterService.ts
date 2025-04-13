@@ -170,12 +170,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
   const pwBlockName = getBlockName(pwBlock.bId)
 
   switch (pwBlockName) {
-    case PwBlockName.CLIMBABLE_CHAIN_LIGHT_HORIZONTAL:
-      return { blockId: EelvlBlockId.CLIMBABLE_CHAIN_LIGHT_VERTICAL }
-    case PwBlockName.CLIMBABLE_CHAIN_DARK_HORIZONTAL:
-      return { blockId: EelvlBlockId.CLIMBABLE_CHAIN_DARK_VERTICAL }
-    case PwBlockName.CLIMBABLE_ROPE_HORIZONTAL:
-      return { blockId: EelvlBlockId.CLIMBABLE_ROPE_VERTICAL }
     case PwBlockName.COIN_GOLD_DOOR:
       return { blockId: EelvlBlockId.COIN_GOLD_DOOR, intParameter: pwBlock.args[0] as number }
     case PwBlockName.COIN_GOLD_GATE:
@@ -217,7 +211,7 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
     case PwBlockName.SIGN_RED:
       return { blockId: EelvlBlockId.SIGN_NORMAL, signType: 2, signText: pwBlock.args[0] as string }
     case PwBlockName.SIGN_GREEN:
-      return { blockId: EelvlBlockId.SIGN_NORMAL, signType: 0, signText: pwBlock.args[0] as string }
+      return createMissingBlockSign(`${PwBlockName.SIGN_GREEN} text: '${pwBlock.args[0] as string}'`)
     case PwBlockName.SIGN_BLUE:
       return { blockId: EelvlBlockId.SIGN_NORMAL, signType: 1, signText: pwBlock.args[0] as string }
     case PwBlockName.SIGN_GOLD:
@@ -330,18 +324,16 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return { blockId: EelvlBlockId.HAZARD_SPIKES_BROWN_UP, intParameter: 3 }
     case PwBlockName.HAZARD_SPIKES_PURPLE_LEFT:
       return { blockId: EelvlBlockId.HAZARD_SPIKES_BROWN_UP, intParameter: 0 }
-    case PwBlockName.HAZARD_SPIKES_PURPLE_CENTER:
-      return { blockId: EelvlBlockId.HAZARD_SPIKES_BROWN_CENTER }
     case PwBlockName.HAZARD_DEATH_DOOR:
       return { blockId: EelvlBlockId.HAZARD_DEATH_DOOR, intParameter: pwBlock.args[0] as number }
     case PwBlockName.HAZARD_DEATH_GATE:
       return { blockId: EelvlBlockId.HAZARD_DEATH_GATE, intParameter: pwBlock.args[0] as number }
     case PwBlockName.NOTE_DRUM:
-      return getPwToEelvlNoteBlock(pwBlock, EelvlBlockId.NOTE_DRUM)
+      return getPwToEelvlNoteBlock(pwBlock, PwBlockName.NOTE_DRUM, EelvlBlockId.NOTE_DRUM)
     case PwBlockName.NOTE_PIANO:
-      return getPwToEelvlNoteBlock(pwBlock, EelvlBlockId.NOTE_PIANO)
+      return getPwToEelvlNoteBlock(pwBlock, PwBlockName.NOTE_PIANO, EelvlBlockId.NOTE_PIANO)
     case PwBlockName.NOTE_GUITAR:
-      return getPwToEelvlNoteBlock(pwBlock, EelvlBlockId.NOTE_GUITAR)
+      return getPwToEelvlNoteBlock(pwBlock, PwBlockName.NOTE_GUITAR, EelvlBlockId.NOTE_GUITAR)
     case PwBlockName.TEAM_EFFECT_NONE:
       return { blockId: EelvlBlockId.TEAM_EFFECT_NONE, intParameter: 0 }
     case PwBlockName.TEAM_EFFECT_RED:
@@ -384,20 +376,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 5 }
     case PwBlockName.TEAM_YELLOW_GATE:
       return { blockId: EelvlBlockId.TEAM_NONE_GATE, intParameter: 6 }
-    case PwBlockName.GENERIC_YELLOW_FACE_SMILE:
-      return { blockId: EelvlBlockId.GENERIC_YELLOW_FACE }
-    case PwBlockName.GENERIC_YELLOW_FACE_FROWN:
-      return { blockId: EelvlBlockId.GENERIC_YELLOW_FACE }
-    case PwBlockName.MINERALS_PURPLE:
-      return { blockId: EelvlBlockId.MINERALS_MAGENTA }
-    case PwBlockName.BEACH_SAND_DRIFT_TOP_LEFT:
-      return { blockId: EelvlBlockId.BEACH_SAND_DRIFT_BOTTOM_LEFT }
-    case PwBlockName.BEACH_SAND_DRIFT_TOP_RIGHT:
-      return { blockId: EelvlBlockId.BEACH_SAND_DRIFT_BOTTOM_RIGHT }
-    case PwBlockName.HALLOWEEN_COBWEB_BOTTOM_LEFT:
-      return { blockId: EelvlBlockId.HALLOWEEN_COBWEB_TOP_LEFT }
-    case PwBlockName.HALLOWEEN_COBWEB_BOTTOM_RIGHT:
-      return { blockId: EelvlBlockId.HALLOWEEN_COBWEB_TOP_RIGHT }
     case PwBlockName.HALLOWEEN_TREE_BRANCH_TOP_LEFT:
       return { blockId: EelvlBlockId.HALLOWEEN_TREE_BRANCH_BOTTOM_RIGHT, intParameter: 3 }
     case PwBlockName.HALLOWEEN_TREE_BRANCH_TOP_RIGHT:
@@ -788,14 +766,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return { blockId: EelvlBlockId.WINTER_HALF_ICE_BOTTOM, intParameter: 0 }
     case PwBlockName.WINTER_HALF_ICE_BOTTOM:
       return { blockId: EelvlBlockId.WINTER_HALF_ICE_BOTTOM, intParameter: 1 }
-    case PwBlockName.WINTER_ICE_DRIFT_TOP_LEFT:
-      return { blockId: EelvlBlockId.WINTER_ICE_DRIFT_BOTTOM_LEFT }
-    case PwBlockName.WINTER_ICE_DRIFT_TOP_RIGHT:
-      return { blockId: EelvlBlockId.WINTER_ICE_DRIFT_BOTTOM_RIGHT }
-    case PwBlockName.WINTER_SNOW_DRIFT_TOP_LEFT:
-      return { blockId: EelvlBlockId.WINTER_SNOW_DRIFT_BOTTOM_LEFT }
-    case PwBlockName.WINTER_SNOW_DRIFT_TOP_RIGHT:
-      return { blockId: EelvlBlockId.WINTER_SNOW_DRIFT_BOTTOM_RIGHT }
     case PwBlockName.FAIRYTALE_HALF_ORANGE_LEFT:
       return { blockId: EelvlBlockId.FAIRYTALE_HALF_ORANGE_BOTTOM, intParameter: 2 }
     case PwBlockName.FAIRYTALE_HALF_ORANGE_TOP:
@@ -834,10 +804,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return { blockId: EelvlBlockId.FAIRYTALE_FLOWER_BLUE, intParameter: 2 }
     case PwBlockName.FAIRYTALE_FLOWER_PINK:
       return { blockId: EelvlBlockId.FAIRYTALE_FLOWER_BLUE, intParameter: 0 }
-    case PwBlockName.SPRING_DIRT_DRIFT_TOP_LEFT:
-      return { blockId: EelvlBlockId.SPRING_DIRT_DRIFT_BOTTOM_LEFT }
-    case PwBlockName.SPRING_DIRT_DRIFT_TOP_RIGHT:
-      return { blockId: EelvlBlockId.SPRING_DIRT_DRIFT_BOTTOM_RIGHT }
     case PwBlockName.SPRING_DAISY_WHITE:
       return { blockId: EelvlBlockId.SPRING_DAISY_WHITE, intParameter: 1 }
     case PwBlockName.SPRING_DAISY_BLUE:
@@ -1064,10 +1030,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return { blockId: EelvlBlockId.MONSTER_TEETH_SMALL_BOTTOM, intParameter: 2 }
     case PwBlockName.MONSTER_TEETH_SMALL_RIGHT:
       return { blockId: EelvlBlockId.MONSTER_TEETH_SMALL_BOTTOM, intParameter: 0 }
-    case PwBlockName.FALL_LEAVES_DRIFT_TOP_LEFT:
-      return { blockId: EelvlBlockId.FALL_LEAVES_DRIFT_BOTTOM_LEFT }
-    case PwBlockName.FALL_LEAVES_DRIFT_TOP_RIGHT:
-      return { blockId: EelvlBlockId.FALL_LEAVES_DRIFT_BOTTOM_RIGHT }
     case PwBlockName.NEWYEARS_BALLOON_RED:
       return { blockId: EelvlBlockId.NEWYEARS_BALLOON_ORANGE, intParameter: 2 }
     case PwBlockName.NEWYEARS_BALLOON_ORANGE:
@@ -1241,12 +1203,17 @@ function getPwToEelvlPortalBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): Ee
   }
 }
 
-function getPwToEelvlNoteBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): EelvlBlock {
-  let intParameter = (pwBlock.args[0] as Uint8Array).at(0)!
-  if (eelvlBlockId === EelvlBlockId.NOTE_PIANO) {
-    intParameter -= 27
+function getPwToEelvlNoteBlock(pwBlock: Block, pwBlockName: PwBlockName, eelvlBlockId: EelvlBlockId): EelvlBlock {
+  const notes = pwBlock.args[0] as Uint8Array
+  if (notes.length === 1) {
+    let intParameter = notes.at(0)!
+    if (eelvlBlockId === EelvlBlockId.NOTE_PIANO) {
+      intParameter -= 27
+    }
+    return { blockId: eelvlBlockId, intParameter: intParameter }
+  } else {
+    return createMissingBlockSign(`${pwBlockName} notes: ${Array.from(notes).toString()}`)
   }
-  return { blockId: eelvlBlockId, intParameter: intParameter }
 }
 
 function getPwToEelvlSwitchActivatorBlock(pwBlock: Block, eelvlBlockId: EelvlBlockId): EelvlBlock {

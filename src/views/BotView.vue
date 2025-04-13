@@ -103,7 +103,7 @@ async function onPwlvlFileChange(event: Event) {
         }}</a></v-row
       >
       <v-row>
-        <PiButton color="red" @click="onDisconnectButtonClick">Disconnect </PiButton>
+        <PiButton color="red" @click="onDisconnectButtonClick">Disconnect</PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>
@@ -120,7 +120,7 @@ async function onPwlvlFileChange(event: Event) {
   <PiCardContainer>
     <v-col>
       <v-row>
-        <PiButton color="blue" @click="onExportEelvlButtonClick">Export to EELVL </PiButton>
+        <PiButton color="blue" @click="onExportEelvlButtonClick">Export to EELVL</PiButton>
       </v-row>
       <v-row>
         <input
@@ -130,10 +130,10 @@ async function onPwlvlFileChange(event: Event) {
           type="file"
           @change="onEelvlFileChange"
         />
-        <PiButton color="blue" @click="onImportEelvlButtonClick">Import from EELVL </PiButton>
+        <PiButton color="blue" @click="onImportEelvlButtonClick">Import from EELVL</PiButton>
       </v-row>
       <v-row>
-        <PiButton v-if="devViewEnabled" color="blue" @click="onExportPwlvlButtonClick">Export to PWLVL </PiButton>
+        <PiButton v-if="devViewEnabled" color="blue" @click="onExportPwlvlButtonClick">Export to PWLVL</PiButton>
       </v-row>
       <v-row>
         <input
@@ -143,7 +143,7 @@ async function onPwlvlFileChange(event: Event) {
           type="file"
           @change="onPwlvlFileChange"
         />
-        <PiButton v-if="devViewEnabled" color="blue" @click="onImportPwlvlButtonClick">Import from PWLVL </PiButton>
+        <PiButton v-if="devViewEnabled" color="blue" @click="onImportPwlvlButtonClick">Import from PWLVL</PiButton>
       </v-row>
     </v-col>
   </PiCardContainer>
@@ -153,35 +153,43 @@ async function onPwlvlFileChange(event: Event) {
       <v-row>
         EELVL doesn't have:
         <ul>
-          <li>Climbable horizontal chain and rope [20, 22, 26]. Replaced with vertical variants.</li>
+          <li>Climbable horizontal chains and rope.</li>
           <li>
-            Local/global switch activator block [102, 107]. EELVL has limited version of this, that is equivalent to
-            switch activator, that always sets switch state to off. If switch activator is set to off, it'll be replaced
-            with EELVL equivalent. If switch activator is set to on, it'll be replaced with normal sign that contains
-            switch id and on/off value.
+            Local/global switch activator block. EELVL has limited version of this, that is equivalent to switch
+            activator, that always sets switch state to off. If switch activator is set to off, it'll be replaced with
+            EELVL equivalent. If switch activator is set to on, it'll be replaced with normal sign that contains switch
+            id and on/off value.
           </li>
-          <li>Local/global switch resetter block [103, 108]. Replaced with normal sign that contains on/off value.</li>
-          <li>Multiple notes per music block - in EELVL it's limited to 1. Replaced with first note in the list.</li>
-          <li>Cyan and magenta spike [146 - 155]. Replaced with brown spikes.</li>
-          <li>Generic yellow face smile/frown block [300, 301]. Replaced with generic yellow face block.</li>
+          <li>Local/global switch resetter block.</li>
           <li>
-            All 4 rotation variants of decorations. Usually it has just 2 rotation variants (like snow, web, beach sand,
-            etc.). Replaced with closest decoration variant (for ex.: top left snow variant replaced with bottom left
-            variant).
+            Multiple notes per music block - in EELVL it's limited to 1. If there is 1 note, it's replaced with note.
+            Otherwise, replaced with text sign containing notes.
           </li>
-          <li>Green sign [69] (nice). Replaced with normal signs.</li>
-          <li>Purple mineral block [322]. Replaced with magenta mineral block.</li>
-          <li>Plate with cake chocolate and pie cherry [1292, 1293]. Replaced with empty plate.</li>
+          <li>Cyan and magenta spikes.</li>
+          <li>Generic yellow face smile/frown block.</li>
           <li>
-            A use for world portal [74]. There is no way to enter PixelWalker world id and then open browser to join it.
-            So it's always replaced with world id pointing to "Current" with id 1.
+            All 4 rotation variants of corner decorations. Usually it has just 2 rotation variants (like snow, web,
+            beach sand, etc.).
           </li>
-          <li>A use for world portal spawn [65]. Same as world portal, so id always replaced with 1.</li>
+          <li>Green sign.</li>
+          <li>Purple mineral block.</li>
+          <li>Plate with cake chocolate and pie cherry.</li>
+          <li>
+            A use for world portal. There is no way to enter PixelWalker world id and then open browser to join it. So
+            it's always replaced with world id pointing to "Current" with id 1.
+          </li>
+          <li>A use for world portal spawn. Same as world portal, so id always replaced with 1.</li>
           <li>Hex Backgrounds.</li>
           <li>Counter blocks.</li>
+          <li>Orange, yellow, cyan and purple canvas foreground blocks.</li>
+          <li>Bronze and silver colours of gilded block pack</li>
+          <li>
+            Multiple layers: some blocks like water or fog are placed on overlay layer. If there are blocks in overlay
+            and foreground layer, blocks in overlay layer are not exported
+          </li>
         </ul>
       </v-row>
-      <v-row>Note: Numbers in [] brackets represent PixelWalker block ids.</v-row>
+      <v-row>All missing blocks are replaced with sign (except for backgrounds).</v-row>
       <v-row>
         <br />
         Fun fact: Signs only let you enter 140 characters in EE: Offline. But it will happily accept EELVL file which
@@ -197,7 +205,6 @@ async function onPwlvlFileChange(event: Event) {
           <li>Block for picked up gold/blue coin [110, 111].</li>
           <li>Timed gate/door [156, 157].</li>
           <li>Trophy [223, 478 - 480, 484 - 486, 1540 - 1542].</li>
-          <li>Fog decoration [343 - 351].</li>
           <li>Label [1000].</li>
           <li>Poison effect [1584].</li>
           <li>Gold gate/door [200, 201].</li>

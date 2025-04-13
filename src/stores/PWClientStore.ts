@@ -6,7 +6,7 @@ import { computed, markRaw, ref } from 'vue'
 export const usePWClientStore = defineStore('PWClientStore', () => {
   let _pwGameClient: PWGameClient | undefined
   let _pwApiClient: PWApiClient | undefined
-  let _blocks: ListBlockResult[] = [] // sorted and uppercased blocks
+  const _blocks: ListBlockResult[] = [] // sorted and uppercased blocks
   const pwGameWorldHelper = markRaw(new PWGameWorldHelper())
   const worldId = ref<string>('')
   const email = ref<string>('')
@@ -38,9 +38,14 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   }
 
   function initBlocks(blocks: ListBlockResult[]) {
-    _blocks = blocks.sort((a, b) => a.Id - b.Id)
-    _blocks = _blocks.map((block) => ({ ...block, PaletteId: block.PaletteId.toUpperCase() }))
+    blocks = blocks
+      .sort((a, b) => a.Id - b.Id)
+      .map((block) => ({
+        ...block,
+        PaletteId: block.PaletteId.toUpperCase(),
+      }))
     blocks.forEach((block) => {
+      _blocks.push(block)
       blocksById[block.Id] = block
       blocksByName[block.PaletteId] = block
     })

@@ -73,7 +73,7 @@ export function getBlockName(pwBlockId: number): PwBlockName {
 }
 
 export function getBlockId(pwBlockName: PwBlockName): number {
-  return getPwBlocksByName()[pwBlockName.toLowerCase()].Id
+  return getPwBlocksByName()[pwBlockName].Id
 }
 
 export function convertDeserializedStructureToWorldBlocks(blocks: DeserialisedStructure, pos: vec2): WorldBlock[] {
