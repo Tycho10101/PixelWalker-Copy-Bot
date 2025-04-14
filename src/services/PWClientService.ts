@@ -6,6 +6,7 @@ import { vec2 } from '@basementuniverse/vec'
 import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { GameError } from '@/classes/GameError.ts'
+import waitUntil, { TimeoutError } from 'async-wait-until'
 
 export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   const authenticationResult = await pwApiClient.authenticate()
@@ -52,6 +53,29 @@ export async function pwClearWorld(): Promise<void> {
 
 export function pwUserHasEditAccess(pwGameWorldHelper: PWGameWorldHelper, playerId: number): boolean {
   return pwGameWorldHelper.getPlayer(playerId)?.rights.canEdit === true
+}
+
+export async function pwEnterEditKey(pwGameClient: PWGameClient, secretEditKey: string|null): Promise<void> {
+  if (secretEditKey === null) {
+    return
+  }
+  if (!getPwGameWorldHelper().meta!.hasSecretEditKey) {
+    sendGlobalChatMessage("ERROR! This world has no secret edit key")
+    return
+  }
+
+  pwGameClient.send('playerEnterSecretEditKeyPacket', {
+    secretEditKey: secretEditKey,
+  })
+  try {
+    await waitUntil(() => pwUserHasEditAccess(getPwGameWorldHelper(), getPwGameWorldHelper().botPlayerId), { timeout: 5000, intervalBetweenAttempts: 1000 })
+  } catch (error) {
+    if (error instanceof TimeoutError) {
+      sendGlobalChatMessage("ERROR! Entered secret edit key is incorrect")
+    } else {
+      console.error('Unexpected error:', error);
+    }
+  }
 }
 
 export function pwCheckEdit(pwGameWorldHelper: PWGameWorldHelper, playerId: number): boolean {
