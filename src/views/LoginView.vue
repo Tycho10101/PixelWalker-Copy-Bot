@@ -29,13 +29,14 @@ watch(worldId, () => {
 
 async function onConnectButtonClick() {
   await withLoading(loadingOverlay, async () => {
+    if (!(await form.value!.validate()).valid) {
+      return
+    }
+    
     usePWClientStore().worldId = worldId.value
     usePWClientStore().email = email.value
     usePWClientStore().password = password.value
     usePWClientStore().secretEditKey = secretEditKey.value
-    if (!(await form.value!.validate()).valid) {
-      return
-    }
 
     await initPwClasses()
 
