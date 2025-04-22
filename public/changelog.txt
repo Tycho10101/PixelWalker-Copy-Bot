@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-04-22 Version 1.0.11
+- Bot: Bot gets throttled far less now, if the tab becomes unfocused/inactive. This should result in bot placing blocks up to 2 times faster.
+
 2025-04-14 Version 1.0.10
 - Bot: Added support for secret edit keys
 

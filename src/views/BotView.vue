@@ -112,10 +112,6 @@ async function onPwlvlFileChange(event: Event) {
     <v-col>
       <v-row><h3>Usage info</h3></v-row>
       <v-row>Type .help in world to learn usage.</v-row>
-      <v-row
-        >Bot runs fully in browser. So for best experience, keep this tab focused if possible. Otherwise, browser may
-        decide to throttle the bot, which may lead to bot becoming unresponsive.
-      </v-row>
     </v-col>
   </PiCardContainer>
   <PiCardContainer>
