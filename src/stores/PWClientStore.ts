@@ -8,17 +8,20 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   const pwGameClient = ref<Raw<PWGameClient> | undefined>(undefined)
   const pwApiClient = ref<Raw<PWApiClient> | undefined>(undefined)
   const pwGameWorldHelper = ref<Raw<PWGameWorldHelper> | undefined>(undefined)
-  const blocks = ref<ListBlockResult[]>([]) // sorted and uppercased blocks
   const worldId = ref<string>('')
   const email = ref<string>('')
   const password = ref<string>('')
   const secretEditKey = ref<string>('')
   const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
+  const blocks = ref<ListBlockResult[]>([]) // sorted and uppercased blocks
   const blocksByPwId = ref<Record<number, ListBlockResult>>({})
   const blocksByPwName = ref<Record<string, ListBlockResult>>({})
   const blocksByEelvlParameters = ref<ManyKeysMap<number[], ListBlockResult>>(new ManyKeysMap()) // Key consist of [LegacyId, LegacyMorph]
 
   return {
+    pwGameClient,
+    pwApiClient,
+    pwGameWorldHelper,
     worldId,
     email,
     password,
@@ -28,9 +31,6 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     blocksByPwId,
     blocksByPwName,
     blocksByEelvlParameters,
-    pwGameClient,
-    pwApiClient,
-    pwGameWorldHelper,
   }
 })
 
