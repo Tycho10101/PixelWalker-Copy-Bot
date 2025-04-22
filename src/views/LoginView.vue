@@ -5,15 +5,12 @@ import PiTextField from '@/components/PiTextField.vue'
 import PiButton from '@/components/PiButton.vue'
 import { VForm } from 'vuetify/components'
 import { useRouter } from 'vue-router'
-import { getPwApiClient, getPwGameClient, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { usePWClientStore } from '@/stores/PWClientStore.ts'
 import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
-import { PWApiClient, PWGameClient } from 'pw-js-api'
-import { pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
-import { registerCallbacks } from '@/services/PacketHandlerService.ts'
+import { initPwClasses } from '@/services/PWClientService.ts'
 import { BotViewRoute } from '@/router/Routes.ts'
 import { withLoading } from '@/services/LoaderProxyService.ts'
 import PiOverlay from '@/components/PiOverlay.vue'
-import { PWGameWorldHelper } from 'pw-js-world'
 
 const loadingOverlay = ref(false)
 const email = ref('')
@@ -23,7 +20,6 @@ const secretEditKey = ref('')
 const form = ref<VForm>()
 
 const router = useRouter()
-const PWClientStore = usePWClientStore()
 
 const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
 
@@ -33,26 +29,15 @@ watch(worldId, () => {
 
 async function onConnectButtonClick() {
   await withLoading(loadingOverlay, async () => {
-    PWClientStore.worldId = worldId.value
-    PWClientStore.email = email.value
-    PWClientStore.password = password.value
-    PWClientStore.secretEditKey = secretEditKey.value
+    usePWClientStore().worldId = worldId.value
+    usePWClientStore().email = email.value
+    usePWClientStore().password = password.value
+    usePWClientStore().secretEditKey = secretEditKey.value
     if (!(await form.value!.validate()).valid) {
       return
     }
 
-    PWClientStore.pwApiClient = new PWApiClient(email.value, password.value)
-
-    await pwAuthenticate(getPwApiClient())
-
-    PWClientStore.pwGameClient = new PWGameClient(getPwApiClient())
-    PWClientStore.pwGameWorldHelper = new PWGameWorldHelper()
-
-    registerCallbacks()
-
-    await pwJoinWorld(getPwGameClient(), worldId.value)
-
-    PWClientStore.initBlocks(await getPwApiClient().getListBlocks())
+    await initPwClasses()
 
     await router.push({ name: BotViewRoute.name })
   })

@@ -18,7 +18,6 @@ import { resetAllStores } from '@/plugins/ResetStore.ts'
 
 const loadingOverlay = ref(false)
 
-const PWClientStore = usePWClientStore()
 const router = useRouter()
 
 const importEelvlFileInput = ref<HTMLInputElement>()
@@ -26,7 +25,7 @@ const importPwlvlFileInput = ref<HTMLInputElement>()
 
 const devViewEnabled = computed(() => import.meta.env.VITE_DEV_VIEW === 'TRUE')
 
-const worldId = ref<string>(PWClientStore.worldId)
+const worldId = ref<string>(usePWClientStore().worldId)
 const worldName = ref<string>(getPwGameWorldHelper().meta?.title ?? '')
 
 async function onDisconnectButtonClick() {

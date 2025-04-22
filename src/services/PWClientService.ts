@@ -1,12 +1,13 @@
-import { PWApiClient, PWGameClient } from 'pw-js-api'
+import { ListBlockResult, PWApiClient, PWGameClient } from 'pw-js-api'
 import { GENERAL_CONSTANTS, TOTAL_PW_LAYERS } from '@/constants/General.ts'
 import { Block, DeserialisedStructure, PWGameWorldHelper } from 'pw-js-world'
 import { placeWorldDataBlocks } from '@/services/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
+import { getPwApiClient, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
 import { GameError } from '@/classes/GameError.ts'
 import waitUntil, { TimeoutError } from 'async-wait-until'
+import { registerCallbacks } from '@/services/PacketHandlerService.ts'
 
 export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   const authenticationResult = await pwApiClient.authenticate()
@@ -28,6 +29,40 @@ export async function pwJoinWorld(pwGameClient: PWGameClient, worldId: string): 
   } catch (e) {
     throw new GameError('Failed to join world. Check world ID. ' + (e as Error).message)
   }
+}
+
+function initPwBlocks(blocks: ListBlockResult[]) {
+  blocks = blocks
+    .sort((a, b) => a.Id - b.Id)
+    .map((block) => ({
+      ...block,
+      PaletteId: block.PaletteId.toUpperCase(),
+    }))
+
+  usePWClientStore().blocks = []
+  usePWClientStore().blocksById = {}
+  usePWClientStore().blocksByName = {}
+
+  blocks.forEach((block) => {
+    usePWClientStore().blocks.push(block)
+    usePWClientStore().blocksById[block.Id] = block
+    usePWClientStore().blocksByName[block.PaletteId] = block
+  })
+}
+
+export async function initPwClasses() {
+  usePWClientStore().pwApiClient = new PWApiClient(usePWClientStore().email, usePWClientStore().password)
+
+  await pwAuthenticate(getPwApiClient())
+
+  usePWClientStore().pwGameClient = new PWGameClient(getPwApiClient())
+  usePWClientStore().pwGameWorldHelper = new PWGameWorldHelper()
+
+  registerCallbacks()
+
+  await pwJoinWorld(getPwGameClient(), usePWClientStore().worldId)
+
+  initPwBlocks(await getPwApiClient().getListBlocks())
 }
 
 export function pwCreateEmptyBlocks(pwGameWorldHelper: PWGameWorldHelper): DeserialisedStructure {

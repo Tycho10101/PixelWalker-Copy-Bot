@@ -7,7 +7,7 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   const pwGameClient = ref<Raw<PWGameClient> | undefined>(undefined)
   const pwApiClient = ref<Raw<PWApiClient> | undefined>(undefined)
   const pwGameWorldHelper = ref<Raw<PWGameWorldHelper> | undefined>(undefined)
-  const _blocks = ref<ListBlockResult[]>([]) // sorted and uppercased blocks
+  const blocks = ref<ListBlockResult[]>([]) // sorted and uppercased blocks
   const worldId = ref<string>('')
   const email = ref<string>('')
   const password = ref<string>('')
@@ -16,30 +16,15 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   const blocksById = ref<Record<number, ListBlockResult>>({})
   const blocksByName = ref<Record<string, ListBlockResult>>({})
 
-  function initBlocks(blocks: ListBlockResult[]) {
-    blocks = blocks
-      .sort((a, b) => a.Id - b.Id)
-      .map((block) => ({
-        ...block,
-        PaletteId: block.PaletteId.toUpperCase(),
-      }))
-    blocks.forEach((block) => {
-      _blocks.value.push(block)
-      blocksById.value[block.Id] = block
-      blocksByName.value[block.PaletteId] = block
-    })
-  }
-
   return {
     worldId,
     email,
     password,
     secretEditKey,
     totalBlocksLeftToReceiveFromWorldImport,
-    _blocks,
+    blocks,
     blocksById,
     blocksByName,
-    initBlocks,
     pwGameClient,
     pwApiClient,
     pwGameWorldHelper,
@@ -59,7 +44,7 @@ export function getPwGameWorldHelper(): PWGameWorldHelper {
 }
 
 export function getPwBlocks(): ListBlockResult[] {
-  return usePWClientStore()._blocks
+  return usePWClientStore().blocks
 }
 
 // TODO: Think what to do about blockid = 0 as there is more than 1 entry
