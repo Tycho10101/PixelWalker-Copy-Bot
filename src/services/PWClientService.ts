@@ -8,6 +8,7 @@ import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMe
 import { GameError } from '@/classes/GameError.ts'
 import waitUntil, { TimeoutError } from 'async-wait-until'
 import { registerCallbacks } from '@/services/PacketHandlerService.ts'
+import ManyKeysMap from 'many-keys-map'
 
 export async function pwAuthenticate(pwApiClient: PWApiClient): Promise<void> {
   const authenticationResult = await pwApiClient.authenticate()
@@ -40,13 +41,25 @@ function initPwBlocks(blocks: ListBlockResult[]) {
     }))
 
   usePWClientStore().blocks = []
-  usePWClientStore().blocksById = {}
-  usePWClientStore().blocksByName = {}
+  usePWClientStore().blocksByPwId = {}
+  usePWClientStore().blocksByPwName = {}
+  usePWClientStore().blocksByEelvlParameters = new ManyKeysMap()
 
   blocks.forEach((block) => {
     usePWClientStore().blocks.push(block)
-    usePWClientStore().blocksById[block.Id] = block
-    usePWClientStore().blocksByName[block.PaletteId] = block
+    usePWClientStore().blocksByPwId[block.Id] = block
+    usePWClientStore().blocksByPwName[block.PaletteId] = block
+    if (block.LegacyId !== undefined) {
+      if (block.LegacyMorph !== undefined) {
+        block.LegacyMorph.forEach((morph) => {
+          // When there are multiple values in block.LegacyMorph, it means that multiple morph values represent exact same block.
+          // Only laser blocks in EELVL have multiple morphs.
+          usePWClientStore().blocksByEelvlParameters.set([block.LegacyId!, morph], block)
+        })
+      } else {
+        usePWClientStore().blocksByEelvlParameters.set([block.LegacyId], block)
+      }
+    }
   })
 }
 

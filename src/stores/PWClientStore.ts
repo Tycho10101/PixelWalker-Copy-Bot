@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ListBlockResult, PWApiClient, PWGameClient } from 'pw-js-api'
 import { PWGameWorldHelper } from 'pw-js-world'
 import { Raw, ref } from 'vue'
+import ManyKeysMap from 'many-keys-map'
 
 export const usePWClientStore = defineStore('PWClientStore', () => {
   const pwGameClient = ref<Raw<PWGameClient> | undefined>(undefined)
@@ -13,8 +14,9 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
   const password = ref<string>('')
   const secretEditKey = ref<string>('')
   const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
-  const blocksById = ref<Record<number, ListBlockResult>>({})
-  const blocksByName = ref<Record<string, ListBlockResult>>({})
+  const blocksByPwId = ref<Record<number, ListBlockResult>>({})
+  const blocksByPwName = ref<Record<string, ListBlockResult>>({})
+  const blocksByEelvlParameters = ref<ManyKeysMap<number[], ListBlockResult>>(new ManyKeysMap()) // Key consist of [LegacyId, LegacyMorph]
 
   return {
     worldId,
@@ -23,8 +25,9 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     secretEditKey,
     totalBlocksLeftToReceiveFromWorldImport,
     blocks,
-    blocksById,
-    blocksByName,
+    blocksByPwId,
+    blocksByPwName,
+    blocksByEelvlParameters,
     pwGameClient,
     pwApiClient,
     pwGameWorldHelper,
@@ -48,11 +51,15 @@ export function getPwBlocks(): ListBlockResult[] {
 }
 
 // TODO: Think what to do about blockid = 0 as there is more than 1 entry
-export function getPwBlocksById(): Record<number, ListBlockResult> {
-  return usePWClientStore().blocksById
+export function getPwBlocksByPwId(): Record<number, ListBlockResult> {
+  return usePWClientStore().blocksByPwId
 }
 
 // TODO: Think what to do about blockname = EMPTY as there is more than 1 entry
-export function getPwBlocksByName(): Record<string, ListBlockResult> {
-  return usePWClientStore().blocksByName
+export function getPwBlocksByPwName(): Record<string, ListBlockResult> {
+  return usePWClientStore().blocksByPwName
+}
+
+export function getPwBlocksByEelvlParameters(): ManyKeysMap<number[], ListBlockResult> {
+  return usePWClientStore().blocksByEelvlParameters
 }

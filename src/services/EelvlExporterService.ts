@@ -1,6 +1,6 @@
 import { ByteArray } from '@/classes/ByteArray.ts'
 import { EelvlBlockId } from '@/gen/EelvlBlockId.ts'
-import { getPwBlocksById, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwBlocksByPwId, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
 import { Block, DeserialisedStructure, LayerType } from 'pw-js-world'
 import { EelvlBlock } from '@/types/EelvlBlock.ts'
 import { downloadFile } from '@/services/FileService.ts'
@@ -256,19 +256,19 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
     // TODO: Awaiting fix
     case PwBlockName.DOMESTIC_TELEVISION_BLUE:
       return { blockId: EelvlBlockId.DOMESTIC_TELEVISION_BLACK, intParameter: 3 }
-    // TODO: Awaiting fix
+    // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_RED:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_RED, intParameter: 1 }
-    // TODO: Awaiting fix
+    // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_GREEN:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_GREEN, intParameter: 1 }
-    // TODO: Awaiting fix
+    // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_WHITE:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_WHITE, intParameter: 1 }
-    // TODO: Awaiting fix
+    // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_BLUE:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_BLUE, intParameter: 1 }
-    // TODO: Awaiting fix
+    // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_YELLOW:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_YELLOW, intParameter: 1 }
     // TODO: Awaiting fix
@@ -278,7 +278,7 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
     case PwBlockName.CHRISTMAS_STRING_LIGHT_BOTTOM_GREEN:
       return { blockId: EelvlBlockId.CHRISTMAS_STRING_LIGHT_BOTTOM_RED, intParameter: 3 }
     default: {
-      const mappedPwBlock = getPwBlocksById()[pwBlock.bId]
+      const mappedPwBlock = getPwBlocksByPwId()[pwBlock.bId]
 
       if (pwBlockName === undefined || mappedPwBlock === undefined) {
         if (pwLayer === LayerType.Foreground) {
