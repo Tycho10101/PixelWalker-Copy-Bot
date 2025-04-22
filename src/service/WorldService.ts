@@ -5,11 +5,11 @@ import {
   getPwGameClient,
   getPwGameWorldHelper,
   usePWClientStore,
-} from '@/stores/PWClientStore.ts'
-import { WorldBlock } from '@/types/WorldBlock.ts'
+} from '@/store/PWClientStore.ts'
+import { WorldBlock } from '@/type/WorldBlock.ts'
 import { PwBlockName } from '@/gen/PwBlockName.ts'
-import { sleep } from '@/utils/Sleep.ts'
-import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
+import { sleep } from '@/util/Sleep.ts'
+import { TOTAL_PW_LAYERS } from '@/constant/General.ts'
 import { vec2 } from '@basementuniverse/vec'
 import { cloneDeep } from 'lodash-es'
 

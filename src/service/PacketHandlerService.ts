@@ -1,4 +1,4 @@
-import { getPwBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+import { getPwBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/store/PWClientStore.ts'
 import {
   Block,
   ComponentTypeHeader,
@@ -10,11 +10,11 @@ import {
   SendableBlockPacket,
 } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
-import { BotData, createBotData } from '@/types/BotData.ts'
-import { getPlayerBotData } from '@/stores/BotStore.ts'
-import { BotState } from '@/enums/BotState.ts'
-import { WorldBlock } from '@/types/WorldBlock.ts'
-import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
+import { BotData, createBotData } from '@/type/BotData.ts'
+import { getPlayerBotData } from '@/store/BotStore.ts'
+import { BotState } from '@/enum/BotState.ts'
+import { WorldBlock } from '@/type/WorldBlock.ts'
+import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/service/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
 import {
   getBlockAt,
@@ -22,15 +22,15 @@ import {
   placeBlockPacket,
   placeMultipleBlocks,
   placeWorldDataBlocks,
-} from '@/services/WorldService.ts'
+} from '@/service/WorldService.ts'
 import {
   addUndoItemDeserializedStructure,
   addUndoItemWorldBlock,
   performRedo,
   performUndo,
-} from '@/services/UndoRedoService.ts'
+} from '@/service/UndoRedoService.ts'
 import { PwBlockName } from '@/gen/PwBlockName.ts'
-import { performRuntimeTests } from '@/tests/RuntimeTests.ts'
+import { performRuntimeTests } from '@/test/RuntimeTests.ts'
 import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
 import {
   getAllWorldBlocks,
@@ -39,12 +39,12 @@ import {
   pwCheckEdit,
   pwClearWorld,
   pwJoinWorld,
-} from '@/services/PWClientService.ts'
-import { importFromPwlvl } from '@/services/PwlvlImporterService.ts'
-import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
-import { handleException } from '@/utils/Exception.ts'
-import { GameError } from '@/classes/GameError.ts'
-import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
+} from '@/service/PWClientService.ts'
+import { importFromPwlvl } from '@/service/PwlvlImporterService.ts'
+import { getWorldIdIfUrl } from '@/service/WorldIdExtractorService.ts'
+import { handleException } from '@/util/Exception.ts'
+import { GameError } from '@/class/GameError.ts'
+import { TOTAL_PW_LAYERS } from '@/constant/General.ts'
 
 export function registerCallbacks() {
   getPwGameClient()

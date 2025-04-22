@@ -1,5 +1,5 @@
 import { Ref } from 'vue'
-import { sleep } from '@/utils/Sleep.ts'
+import { sleep } from '@/util/Sleep.ts'
 
 export async function withLoading(loading: Ref<boolean>, callback: () => Promise<void>) {
   loading.value = true

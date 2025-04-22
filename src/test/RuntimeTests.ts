@@ -1,17 +1,17 @@
-import everyBlockEelvlFile from '@/tests/resources/every-block.eelvl?url'
-import everyBlockExportedEelvlPwlvlFile from '@/tests/resources/every-block-exported-eelvl.pwlvl?url'
-import everyBlockOriginalPwlvlFile from '@/tests/resources/every-block-original.pwlvl?url'
-import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
-import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
-import { getExportedToEelvlData } from '@/services/EelvlExporterService.ts'
+import everyBlockEelvlFile from '@/test/resources/every-block.eelvl?url'
+import everyBlockExportedEelvlPwlvlFile from '@/test/resources/every-block-exported-eelvl.pwlvl?url'
+import everyBlockOriginalPwlvlFile from '@/test/resources/every-block-original.pwlvl?url'
+import { getImportedFromEelvlData } from '@/service/EelvlImporterService.ts'
+import { sendGlobalChatMessage } from '@/service/ChatMessageService.ts'
+import { getExportedToEelvlData } from '@/service/EelvlExporterService.ts'
 import {
   compareDeserialisedStructureData,
   getDataFromEelvlFile,
   getDataFromPwlvlFile,
   placePwLvlblocks,
-} from '@/tests/RuntimeTestsUtil.ts'
-import { getAllWorldBlocks, pwAuthenticate, pwJoinWorld } from '@/services/PWClientService.ts'
-import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/stores/PWClientStore.ts'
+} from '@/test/RuntimeTestsUtil.ts'
+import { getAllWorldBlocks, pwAuthenticate, pwJoinWorld } from '@/service/PWClientService.ts'
+import { getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/store/PWClientStore.ts'
 import { CustomBotEvents, PWApiClient, PWGameClient, WorldEventNames } from 'pw-js-api'
 import { PWGameWorldHelper } from 'pw-js-world'
 import waitUntil from 'async-wait-until'

@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
-import PiCardContainer from '@/components/PiCardContainer.vue'
-import PiTextField from '@/components/PiTextField.vue'
-import PiButton from '@/components/PiButton.vue'
+import PiCardContainer from '@/component/PiCardContainer.vue'
+import PiTextField from '@/component/PiTextField.vue'
+import PiButton from '@/component/PiButton.vue'
 import { VForm } from 'vuetify/components'
 import { useRouter } from 'vue-router'
-import { usePWClientStore } from '@/stores/PWClientStore.ts'
-import { getWorldIdIfUrl } from '@/services/WorldIdExtractorService.ts'
-import { initPwClasses } from '@/services/PWClientService.ts'
+import { usePWClientStore } from '@/store/PWClientStore.ts'
+import { getWorldIdIfUrl } from '@/service/WorldIdExtractorService.ts'
+import { initPwClasses } from '@/service/PWClientService.ts'
 import { BotViewRoute } from '@/router/Routes.ts'
-import { withLoading } from '@/services/LoaderProxyService.ts'
-import PiOverlay from '@/components/PiOverlay.vue'
+import { withLoading } from '@/service/LoaderProxyService.ts'
+import PiOverlay from '@/component/PiOverlay.vue'
 
 const loadingOverlay = ref(false)
 const email = ref('')
@@ -32,7 +32,7 @@ async function onConnectButtonClick() {
     if (!(await form.value!.validate()).valid) {
       return
     }
-    
+
     usePWClientStore().worldId = worldId.value
     usePWClientStore().email = email.value
     usePWClientStore().password = password.value

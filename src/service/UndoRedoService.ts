@@ -1,7 +1,7 @@
-import { BotData } from '@/types/BotData.ts'
-import { WorldBlock } from '@/types/WorldBlock.ts'
-import { convertDeserializedStructureToWorldBlocks, getBlockAt, placeMultipleBlocks } from '@/services/WorldService.ts'
-import { sendPrivateChatMessage } from '@/services/ChatMessageService.ts'
+import { BotData } from '@/type/BotData.ts'
+import { WorldBlock } from '@/type/WorldBlock.ts'
+import { convertDeserializedStructureToWorldBlocks, getBlockAt, placeMultipleBlocks } from '@/service/WorldService.ts'
+import { sendPrivateChatMessage } from '@/service/ChatMessageService.ts'
 import { Block, DeserialisedStructure, LayerType, Point } from 'pw-js-world'
 import { vec2 } from '@basementuniverse/vec'
 

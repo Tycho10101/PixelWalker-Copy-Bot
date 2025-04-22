@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import PiChangelogButton from '@/components/PiChangelogButton.vue'
+<script lang="ts" setup>
+import PiChangelogButton from '@/component/PiChangelogButton.vue'
 </script>
 
 <template>

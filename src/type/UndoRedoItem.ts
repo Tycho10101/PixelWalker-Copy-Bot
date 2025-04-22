@@ -1,4 +1,4 @@
-import { WorldBlock } from '@/types/WorldBlock.ts'
+import { WorldBlock } from '@/type/WorldBlock.ts'
 
 export type UndoRedoItem = {
   oldBlocks: WorldBlock[]

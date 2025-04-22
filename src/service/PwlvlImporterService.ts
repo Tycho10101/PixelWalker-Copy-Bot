@@ -1,10 +1,10 @@
 import { DeserialisedStructure, StructureHelper } from 'pw-js-world'
 import { vec2 } from '@basementuniverse/vec'
-import { placeWorldDataBlocks } from '@/services/WorldService.ts'
-import { getPwGameWorldHelper } from '@/stores/PWClientStore.ts'
-import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
-import { pwCheckEditWhenImporting, pwCreateEmptyBlocks } from '@/services/PWClientService.ts'
-import { MessageService } from '@/services/MessageService.ts'
+import { placeWorldDataBlocks } from '@/service/WorldService.ts'
+import { getPwGameWorldHelper } from '@/store/PWClientStore.ts'
+import { sendGlobalChatMessage } from '@/service/ChatMessageService.ts'
+import { pwCheckEditWhenImporting, pwCreateEmptyBlocks } from '@/service/PWClientService.ts'
+import { MessageService } from '@/service/MessageService.ts'
 
 export function getImportedFromPwlvlData(fileData: ArrayBuffer): DeserialisedStructure {
   const blocks = pwCreateEmptyBlocks(getPwGameWorldHelper())

@@ -1,8 +1,8 @@
-import { BotState } from '@/enums/BotState.ts'
+import { BotState } from '@/enum/BotState.ts'
 import { Point } from 'pw-js-world'
-import { WorldBlock } from '@/types/WorldBlock.ts'
+import { WorldBlock } from '@/type/WorldBlock.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { UndoRedoItem } from '@/types/UndoRedoItem.ts'
+import { UndoRedoItem } from '@/type/UndoRedoItem.ts'
 
 export type BotData = {
   botState: BotState

@@ -1,10 +1,10 @@
 import App from '@/App.vue'
-import { createVuetify } from '@/plugins/Vuetify.ts'
+import { createVuetify } from '@/plugin/Vuetify.ts'
 import { createPinia } from 'pinia'
 import { createRouter } from '@/router/Router.ts'
 import { createApp } from 'vue'
-import { handleException } from '@/utils/Exception.ts'
-import { resetStorePlugin } from '@/plugins/ResetStore.ts'
+import { handleException } from '@/util/Exception.ts'
+import { resetStorePlugin } from '@/plugin/ResetStore.ts'
 
 const vuetify = createVuetify()
 const pinia = createPinia()

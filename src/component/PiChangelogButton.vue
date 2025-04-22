@@ -9,9 +9,9 @@
   </PiCardContainer>
 </template>
 
-<script setup lang="ts">
-import PiCardContainer from '@/components/PiCardContainer.vue'
-import PiButton from '@/components/PiButton.vue'
+<script lang="ts" setup>
+import PiCardContainer from '@/component/PiCardContainer.vue'
+import PiButton from '@/component/PiButton.vue'
 import { onMounted, ref } from 'vue'
 
 const changelogLocation = '/Pixel-Walker-Copy-Bot/changelog.txt'

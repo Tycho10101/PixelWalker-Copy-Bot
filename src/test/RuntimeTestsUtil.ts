@@ -1,12 +1,12 @@
 import { DeserialisedStructure } from 'pw-js-world'
-import { getImportedFromPwlvlData } from '@/services/PwlvlImporterService.ts'
+import { getImportedFromPwlvlData } from '@/service/PwlvlImporterService.ts'
 import { deepStrictEqual } from 'node:assert'
-import { TOTAL_PW_LAYERS } from '@/constants/General.ts'
-import { getImportedFromEelvlData } from '@/services/EelvlImporterService.ts'
-import { placeWorldDataBlocks } from '@/services/WorldService.ts'
+import { TOTAL_PW_LAYERS } from '@/constant/General.ts'
+import { getImportedFromEelvlData } from '@/service/EelvlImporterService.ts'
+import { placeWorldDataBlocks } from '@/service/WorldService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { GameError } from '@/classes/GameError.ts'
-import { pwClearWorld } from '@/services/PWClientService.ts'
+import { GameError } from '@/class/GameError.ts'
+import { pwClearWorld } from '@/service/PWClientService.ts'
 
 export function compareDeserialisedStructureData(
   receivedData: DeserialisedStructure,

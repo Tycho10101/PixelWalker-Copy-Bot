@@ -1,8 +1,8 @@
-import { MessageService } from '@/services/MessageService.ts'
-import { sendGlobalChatMessage } from '@/services/ChatMessageService.ts'
-import { GENERAL_CONSTANTS } from '@/constants/General.ts'
-import { GameError } from '@/classes/GameError.ts'
-import { getPwGameClient } from '@/stores/PWClientStore.ts'
+import { MessageService } from '@/service/MessageService.ts'
+import { sendGlobalChatMessage } from '@/service/ChatMessageService.ts'
+import { GENERAL_CONSTANTS } from '@/constant/General.ts'
+import { GameError } from '@/class/GameError.ts'
+import { getPwGameClient } from '@/store/PWClientStore.ts'
 
 export function getExceptionDescription(exception: unknown): string {
   if (exception instanceof Error) {

@@ -1,4 +1,4 @@
-import { EelvlLayer } from '@/enums/EelvlLayer.ts'
+import { EelvlLayer } from '@/enum/EelvlLayer.ts'
 
 export type EelvlBlock = {
   name: string
