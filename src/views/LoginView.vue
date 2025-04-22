@@ -13,6 +13,7 @@ import { registerCallbacks } from '@/services/PacketHandlerService.ts'
 import { BotViewRoute } from '@/router/Routes.ts'
 import { withLoading } from '@/services/LoaderProxyService.ts'
 import PiOverlay from '@/components/PiOverlay.vue'
+import { PWGameWorldHelper } from 'pw-js-world'
 
 const loadingOverlay = ref(false)
 const email = ref('')
@@ -40,11 +41,12 @@ async function onConnectButtonClick() {
       return
     }
 
-    PWClientStore.setPwApiClient(new PWApiClient(email.value, password.value))
+    PWClientStore.pwApiClient = new PWApiClient(email.value, password.value)
 
     await pwAuthenticate(getPwApiClient())
 
-    PWClientStore.setPwGameClient(new PWGameClient(getPwApiClient()))
+    PWClientStore.pwGameClient = new PWGameClient(getPwApiClient())
+    PWClientStore.pwGameWorldHelper = new PWGameWorldHelper()
 
     registerCallbacks()
 

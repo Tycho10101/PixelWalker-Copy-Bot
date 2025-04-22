@@ -1,42 +1,20 @@
 import { defineStore } from 'pinia'
 import { ListBlockResult, PWApiClient, PWGameClient } from 'pw-js-api'
 import { PWGameWorldHelper } from 'pw-js-world'
-import { computed, markRaw, ref } from 'vue'
+import { Raw, ref } from 'vue'
 
 export const usePWClientStore = defineStore('PWClientStore', () => {
-  let _pwGameClient: PWGameClient | undefined
-  let _pwApiClient: PWApiClient | undefined
-  const _blocks: ListBlockResult[] = [] // sorted and uppercased blocks
-  const pwGameWorldHelper = markRaw(new PWGameWorldHelper())
+  const pwGameClient = ref<Raw<PWGameClient> | undefined>(undefined)
+  const pwApiClient = ref<Raw<PWApiClient> | undefined>(undefined)
+  const pwGameWorldHelper = ref<Raw<PWGameWorldHelper> | undefined>(undefined)
+  const _blocks = ref<ListBlockResult[]>([]) // sorted and uppercased blocks
   const worldId = ref<string>('')
   const email = ref<string>('')
   const password = ref<string>('')
   const secretEditKey = ref<string>('')
   const totalBlocksLeftToReceiveFromWorldImport = ref<number>(0)
-  const blocksById: Record<number, ListBlockResult> = {}
-  const blocksByName: Record<string, ListBlockResult> = {}
-
-  const pwGameClient = computed<PWGameClient | undefined>(() => {
-    if (!_pwApiClient) {
-      return undefined
-    }
-    return _pwGameClient
-  })
-
-  function setPwGameClient(client: PWGameClient | undefined) {
-    _pwGameClient = client
-  }
-
-  const pwApiClient = computed<PWApiClient | undefined>(() => {
-    if (!_pwApiClient) {
-      return undefined
-    }
-    return _pwApiClient
-  })
-
-  function setPwApiClient(client: PWApiClient | undefined) {
-    _pwApiClient = client
-  }
+  const blocksById = ref<Record<number, ListBlockResult>>({})
+  const blocksByName = ref<Record<string, ListBlockResult>>({})
 
   function initBlocks(blocks: ListBlockResult[]) {
     blocks = blocks
@@ -46,16 +24,13 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
         PaletteId: block.PaletteId.toUpperCase(),
       }))
     blocks.forEach((block) => {
-      _blocks.push(block)
-      blocksById[block.Id] = block
-      blocksByName[block.PaletteId] = block
+      _blocks.value.push(block)
+      blocksById.value[block.Id] = block
+      blocksByName.value[block.PaletteId] = block
     })
   }
 
   return {
-    pwGameClient,
-    pwApiClient,
-    pwGameWorldHelper,
     worldId,
     email,
     password,
@@ -64,9 +39,10 @@ export const usePWClientStore = defineStore('PWClientStore', () => {
     _blocks,
     blocksById,
     blocksByName,
-    setPwGameClient,
-    setPwApiClient,
     initBlocks,
+    pwGameClient,
+    pwApiClient,
+    pwGameWorldHelper,
   }
 })
 
@@ -79,7 +55,7 @@ export function getPwApiClient(): PWApiClient {
 }
 
 export function getPwGameWorldHelper(): PWGameWorldHelper {
-  return usePWClientStore().pwGameWorldHelper
+  return usePWClientStore().pwGameWorldHelper!
 }
 
 export function getPwBlocks(): ListBlockResult[] {

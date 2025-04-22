@@ -14,6 +14,7 @@ import PiCardContainer from '@/components/PiCardContainer.vue'
 import PiButton from '@/components/PiButton.vue'
 import { createAsyncCallback } from '@/utils/Promise.ts'
 import PiOverlay from '@/components/PiOverlay.vue'
+import { resetAllStores } from '@/plugins/ResetStore.ts'
 
 const loadingOverlay = ref(false)
 
@@ -32,12 +33,8 @@ async function onDisconnectButtonClick() {
   await withLoading(loadingOverlay, async () => {
     getPwGameClient().disconnect(false)
 
-    PWClientStore.setPwGameClient(undefined)
-    PWClientStore.setPwApiClient(undefined)
-    PWClientStore.worldId = ''
-    PWClientStore.email = ''
-    PWClientStore.password = ''
-    PWClientStore.secretEditKey = ''
+    resetAllStores()
+
     await router.push({ name: LoginViewRoute.name })
   })
 }
