@@ -14,6 +14,7 @@ Features accessible via commands:
     - Smart repeated paste - switches/portals/etc. get auto incremented based on placed pattern (useful for building
       switch worlds)
 - Undo/redo blocks placed by bot
+- Import PixelWalker worlds via link
 
 Features accessible via bot page:
 
