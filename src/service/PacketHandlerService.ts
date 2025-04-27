@@ -1,14 +1,5 @@
 import { getPwBlocks, getPwGameClient, getPwGameWorldHelper, usePWClientStore } from '@/store/PWClientStore.ts'
-import {
-  Block,
-  ComponentTypeHeader,
-  createBlockPacket,
-  IPlayer,
-  LayerType,
-  Point,
-  PWGameWorldHelper,
-  SendableBlockPacket,
-} from 'pw-js-world'
+import { Block, ComponentTypeHeader, IPlayer, LayerType, Point, PWGameWorldHelper } from 'pw-js-world'
 import { cloneDeep } from 'lodash-es'
 import { BotData, createBotData } from '@/type/BotData.ts'
 import { getPlayerBotData } from '@/store/BotStore.ts'
@@ -16,13 +7,7 @@ import { BotState } from '@/enum/BotState.ts'
 import { WorldBlock } from '@/type/WorldBlock.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/service/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import {
-  getBlockAt,
-  getBlockName,
-  placeBlockPacket,
-  placeMultipleBlocks,
-  placeWorldDataBlocks,
-} from '@/service/WorldService.ts'
+import { getBlockAt, getBlockName, placeMultipleBlocks, placeWorldDataBlocks } from '@/service/WorldService.ts'
 import {
   addUndoItemDeserializedStructure,
   addUndoItemWorldBlock,
@@ -35,9 +20,9 @@ import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
 import {
   getAllWorldBlocks,
   pwAuthenticate,
-  pwEnterEditKey,
   pwCheckEdit,
   pwClearWorld,
+  pwEnterEditKey,
   pwJoinWorld,
 } from '@/service/PWClientService.ts'
 import { importFromPwlvl } from '@/service/PwlvlImporterService.ts'
@@ -461,9 +446,8 @@ function applySmartTransformForBlocks(
   })
 }
 
-function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPos: Point, oldBlock: Block) {
+function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
   try {
-    placeBlockPacket(blockPacket)
     let allBlocks: WorldBlock[] = []
 
     const mapWidth = getPwGameWorldHelper().width
@@ -518,15 +502,7 @@ function pasteBlocks(blockPacket: SendableBlockPacket, botData: BotData, blockPo
   }
 }
 
-function selectBlocks(
-  blockPacket: SendableBlockPacket,
-  botData: BotData,
-  blockPos: Point,
-  oldBlock: Block,
-  playerId: number,
-) {
-  placeBlockPacket(blockPacket)
-
+function selectBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
   let selectedTypeText: string
   if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
     selectedTypeText = 'from'
@@ -595,34 +571,108 @@ function worldBlockPlacedPacketReceived(
     return
   }
 
-  if (!getPlayerBotData()[playerId]) {
-    getPlayerBotData()[playerId] = createBotData()
-  }
-  const botData = getPlayerBotData()[playerId]
-
   if (data.positions.length !== states.oldBlocks.length || states.oldBlocks.length !== states.newBlocks.length) {
     handleException(new GameError('Packet block count and old/new block count mismatch detected'))
     return
   }
 
+  switch (getBlockName(data.blockId)) {
+    case PwBlockName.COIN_GOLD:
+      goldCoinBlockPlaced(data, states)
+      break
+
+    case PwBlockName.COIN_BLUE:
+      blueCoinBlockPlaced(data, states)
+      break
+  }
+}
+
+function getBotData(playerId: number) {
+  if (!getPlayerBotData()[playerId]) {
+    getPlayerBotData()[playerId] = createBotData()
+  }
+  return getPlayerBotData()[playerId]
+}
+
+function createOldWorldBlocks(positions: vec2[], oldBlocks: Block[]) {
+  const worldBlocks: WorldBlock[] = []
+  for (let i = 0; i < oldBlocks.length; i++) {
+    const oldBlock = oldBlocks[i]
+    const position = positions[i]
+
+    const worldBlock = {
+      block: oldBlock,
+      layer: LayerType.Foreground,
+      pos: position,
+    }
+    worldBlocks.push(worldBlock)
+  }
+
+  return worldBlocks
+}
+
+function goldCoinBlockPlaced(
+  data: ProtoGen.WorldBlockPlacedPacket,
+  states: {
+    player: IPlayer | undefined
+    oldBlocks: Block[]
+    newBlocks: Block[]
+  },
+) {
+  const playerId = data.playerId!
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
+  const worldBlocks = createOldWorldBlocks(data.positions, states.oldBlocks)
+  void placeMultipleBlocks(worldBlocks)
+
+  // We assume that if more packets arrived, it was by mistake via fill tool, brush tool or accidental drag through the map
+  const MAX_GOLD_COINS_EXPECTED_PER_PACKET = 1
+  if (data.positions.length > MAX_GOLD_COINS_EXPECTED_PER_PACKET) {
+    return
+  }
+
+  const botData = getBotData(playerId)
+
+  const blockPos = data.positions[0]
+  const oldBlock = states.oldBlocks[0]
+
+  selectBlocks(botData, blockPos, oldBlock, playerId)
+}
+
+function blueCoinBlockPlaced(
+  data: ProtoGen.WorldBlockPlacedPacket,
+  states: {
+    player: IPlayer | undefined
+    oldBlocks: Block[]
+    newBlocks: Block[]
+  },
+) {
+  const playerId = data.playerId!
+  if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
+    return
+  }
+
+  const worldBlocks = createOldWorldBlocks(data.positions, states.oldBlocks)
+  void placeMultipleBlocks(worldBlocks)
+
+  const MAX_BLUE_COINS_EXPECTED_PER_PACKET = 4
+  if (data.positions.length > MAX_BLUE_COINS_EXPECTED_PER_PACKET) {
+    return
+  }
+
+  const botData = getBotData(playerId)
+
+  // We want to prevent paste happening when player accidentally uses fill or brush tool
+  // But simultaneously, if player drags blue coin across the map, there could be multiple blue coins in single packet
+  // This is not ideal, but good enough
   for (let i = 0; i < data.positions.length; i++) {
     const blockPos = data.positions[i]
     const oldBlock = states.oldBlocks[i]
-    const blockPacket = createBlockPacket(oldBlock, LayerType.Foreground, blockPos)
-    if (getBlockName(data.blockId) === PwBlockName.COIN_GOLD) {
-      if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
-        return
-      }
-
-      selectBlocks(blockPacket, botData, blockPos, oldBlock, playerId)
-    }
 
     if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
-      if (!pwCheckEdit(getPwGameWorldHelper(), playerId)) {
-        return
-      }
-
-      pasteBlocks(blockPacket, botData, blockPos, oldBlock)
+      pasteBlocks(botData, blockPos, oldBlock)
     }
   }
 }

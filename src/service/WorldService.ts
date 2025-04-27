@@ -22,6 +22,10 @@ export function getBlockAt(pos: Point, layer: number): Block {
 }
 
 export async function placeMultipleBlocks(worldBlocks: WorldBlock[]) {
+  if (worldBlocks.length === 0) {
+    return
+  }
+
   const packets = createBlockPackets(worldBlocks)
 
   return await placePackets(packets, worldBlocks.length)
