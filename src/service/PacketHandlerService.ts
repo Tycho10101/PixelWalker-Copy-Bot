@@ -227,6 +227,7 @@ async function importCommandReceived(args: string[], playerId: number) {
         const botData = getPlayerBotData()[playerId]
         addUndoItemDeserializedStructure(botData, blocks, destPos)
         await placeWorldDataBlocks(blocks, destPos)
+        sendGlobalChatMessage('Finished importing world.')
       } else {
         await pwClearWorld()
         await importFromPwlvl(blocks.toBuffer())
