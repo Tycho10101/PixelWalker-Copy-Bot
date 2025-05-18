@@ -664,6 +664,11 @@ function blueCoinBlockPlaced(
 
   const botData = getBotData(playerId)
 
+  if (botData.botState !== BotState.SELECTED_TO) {
+    sendPrivateChatMessage('ERROR! You need to select area first', playerId)
+    return
+  }
+
   // We want to prevent paste happening when player accidentally uses fill or brush tool
   // But simultaneously, if player drags blue coin across the map, there could be multiple blue coins in single packet
   // This is not ideal, but good enough

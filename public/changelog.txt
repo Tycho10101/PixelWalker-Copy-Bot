@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-05-18 Version 1.0.13
+- Bot: Blocks now can only be pasted, when area is selected (prevents accidents, when first corner select is "to" and second corner select is "from")
+
 2025-04-27 Version 1.0.12
 - Bot: Added protection against accidental fill tool or brush tool usage when using gold/blue coins to select/paste blocks.
 
