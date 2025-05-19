@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-05-19 Version 1.0.14
+- Bot: Updated to work with PixelWalker version 0.21.0-alpha
+
 2025-05-18 Version 1.0.13
 - Bot: Blocks now can only be pasted, when area is selected (prevents accidents, when first corner select is "to" and second corner select is "from")
 - Bot: Fixed an issue where no confirmation message would be shown when using partial world import

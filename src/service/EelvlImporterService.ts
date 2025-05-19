@@ -248,20 +248,6 @@ function mapBlockIdEelvlToPw(eelvlBlock: EelvlBlock, eelvlLayer: EelvlLayer): Bl
         default:
           return createBlock(PwBlockName.EMPTY)
       }
-    // TODO: Awaiting fix
-    case EelvlBlockId.DOMESTIC_TELEVISION_BLACK:
-      switch (eelvlBlock.intParameter) {
-        case 1:
-          return createBlock(PwBlockName.DOMESTIC_TELEVISION_BLACK)
-        case 2:
-          return createBlock(PwBlockName.DOMESTIC_TELEVISION_GRAY)
-        case 3:
-          return createBlock(PwBlockName.DOMESTIC_TELEVISION_BLUE)
-        case 0:
-          return createBlock(PwBlockName.DOMESTIC_TELEVISION_YELLOW)
-        default:
-          return createBlock(PwBlockName.EMPTY)
-      }
     // NOTE: PW Devs will not fix this
     case EelvlBlockId.CHRISTMAS_GIFT_HALF_RED:
       return createBlock(PwBlockName.CHRISTMAS_GIFT_HALF_RED)

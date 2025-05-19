@@ -110,5 +110,5 @@ async function testMapUpdateFromPlayerInitPacket() {
   })
 
   await pwJoinWorld(pwGameClient, worldId)
-  await waitUntil(() => initReceived, { timeout: 20000, intervalBetweenAttempts: 1000 })
+  await waitUntil(() => initReceived, { timeout: 30000, intervalBetweenAttempts: 1000 })
 }

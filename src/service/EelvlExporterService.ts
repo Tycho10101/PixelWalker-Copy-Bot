@@ -250,12 +250,6 @@ function mapBlockIdPwToEelvl(pwBlock: Block, pwLayer: LayerType): EelvlBlock {
       return getPwToEelvlNoteBlock(pwBlock, PwBlockName.NOTE_PIANO, EelvlBlockId.NOTE_PIANO)
     case PwBlockName.NOTE_GUITAR:
       return getPwToEelvlNoteBlock(pwBlock, PwBlockName.NOTE_GUITAR, EelvlBlockId.NOTE_GUITAR)
-    // TODO: Awaiting fix
-    case PwBlockName.DOMESTIC_TELEVISION_GRAY:
-      return { blockId: EelvlBlockId.DOMESTIC_TELEVISION_BLACK, intParameter: 2 }
-    // TODO: Awaiting fix
-    case PwBlockName.DOMESTIC_TELEVISION_BLUE:
-      return { blockId: EelvlBlockId.DOMESTIC_TELEVISION_BLACK, intParameter: 3 }
     // NOTE: PW Devs will not fix this
     case PwBlockName.CHRISTMAS_GIFT_HALF_RED:
       return { blockId: EelvlBlockId.CHRISTMAS_GIFT_HALF_RED, intParameter: 1 }
