@@ -469,11 +469,13 @@ function applySmartTransformForBlocks(
 }
 
 function getSelectedAreaAsEmptyBlocks(botData: BotData) {
+  const [minPos, maxPos] = getMinMaxPos(botData.selectedFromPos, botData.selectedToPos)
   const emptyBlocks: WorldBlock[] = []
-  for (let x = botData.selectedFromPos.x; x <= botData.selectedToPos.x; x++) {
-    for (let y = botData.selectedFromPos.y; y <= botData.selectedToPos.y; y++) {
+  for (let x = 0; x <= maxPos.x - minPos.x; x++) {
+    for (let y = 0; y <= maxPos.y - minPos.y; y++) {
+      const sourcePos = vec2.add(minPos, vec2(x, y))
       for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
-        emptyBlocks.push({ block: new Block(0), layer: layer, pos: vec2(x, y) })
+        emptyBlocks.push({ block: new Block(0), layer: layer, pos: sourcePos })
       }
     }
   }
@@ -747,19 +749,24 @@ function applyPosOffsetForBlocks(offsetPos: Point, worldBlocks: WorldBlock[]) {
   })
 }
 
+function getMinMaxPos(pos1: Point, pos2: Point) {
+  const minPos = cloneDeep(pos1)
+  const maxPos = cloneDeep(pos2)
+  if (minPos.x > maxPos.x) {
+    ;[minPos.x, maxPos.x] = [maxPos.x, minPos.x]
+  }
+  if (minPos.y > maxPos.y) {
+    ;[minPos.y, maxPos.y] = [maxPos.y, minPos.y]
+  }
+  return [minPos, maxPos]
+}
+
 function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, toPos: Point): WorldBlock[] {
-  fromPos = cloneDeep(fromPos)
-  toPos = cloneDeep(toPos)
-  if (fromPos.x > toPos.x) {
-    ;[fromPos.x, toPos.x] = [toPos.x, fromPos.x]
-  }
-  if (fromPos.y > toPos.y) {
-    ;[fromPos.y, toPos.y] = [toPos.y, fromPos.y]
-  }
+  const [minPos, maxPos] = getMinMaxPos(fromPos, toPos)
   const data: WorldBlock[] = []
-  for (let x = 0; x <= toPos.x - fromPos.x; x++) {
-    for (let y = 0; y <= toPos.y - fromPos.y; y++) {
-      const sourcePos = vec2.add(fromPos, vec2(x, y))
+  for (let x = 0; x <= maxPos.x - minPos.x; x++) {
+    for (let y = 0; y <= maxPos.y - minPos.y; y++) {
+      const sourcePos = vec2.add(minPos, vec2(x, y))
 
       let foregroundBlock = getBlockAt(sourcePos, LayerType.Foreground)
       if (vec2.eq(sourcePos, oldBlockPos)) {
