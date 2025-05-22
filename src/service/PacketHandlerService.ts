@@ -472,8 +472,8 @@ function getSelectedAreaAsEmptyBlocks(botData: BotData) {
   const emptyBlocks: WorldBlock[] = []
   for (let x = botData.selectedFromPos.x; x <= botData.selectedToPos.x; x++) {
     for (let y = botData.selectedFromPos.y; y <= botData.selectedToPos.y; y++) {
-      for (let i = 0; i < TOTAL_PW_LAYERS; i++) {
-        emptyBlocks.push({ block: new Block(0), layer: LayerType.Foreground, pos: vec2(x, y) })
+      for (let layer = 0; layer < TOTAL_PW_LAYERS; layer++) {
+        emptyBlocks.push({ block: new Block(0), layer: layer, pos: vec2(x, y) })
       }
     }
   }
