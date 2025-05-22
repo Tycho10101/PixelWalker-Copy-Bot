@@ -78,6 +78,9 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
     case '.redo':
       redoCommandReceived(args, playerId)
       break
+    case '.move':
+      moveCommandReceived(args, playerId)
+      break
     case '.test':
       await testCommandReceived(args, playerId)
       break
@@ -89,6 +92,13 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
         sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
       }
   }
+}
+
+function moveCommandReceived(_args: string[], playerId: number) {
+  const botData = getPlayerBotData()[playerId]
+  botData.moveEnabled = !botData.moveEnabled
+
+  sendPrivateChatMessage(`Next paste will ${botData.moveEnabled ? '' : 'not '}delete blocks in selected area`, playerId)
 }
 
 async function placeallCommandReceived(_args: string[], playerId: number) {
@@ -333,6 +343,10 @@ function helpCommandReceived(args: string[], playerId: number) {
       sendPrivateChatMessage(`Example usage 1: .redo`, playerId)
       sendPrivateChatMessage(`Example usage 2: .redo 3`, playerId)
       break
+    case 'move':
+    case '.move':
+      sendPrivateChatMessage('.move - when performing next paste, deletes blocks in last selected area', playerId)
+      break
     case 'import':
     case '.import':
       sendPrivateChatMessage('.import world_id [src_from_x src_from_y src_to_x src_to_y dest_to_x dest_to_y]', playerId)
@@ -454,7 +468,35 @@ function applySmartTransformForBlocks(
   })
 }
 
-function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
+function getSelectedAreaAsEmptyBlocks(botData: BotData) {
+  const emptyBlocks: WorldBlock[] = []
+  for (let x = botData.selectedFromPos.x; x <= botData.selectedToPos.x; x++) {
+    for (let y = botData.selectedFromPos.y; y <= botData.selectedToPos.y; y++) {
+      for (let i = 0; i < TOTAL_PW_LAYERS; i++) {
+        emptyBlocks.push({ block: new Block(0), layer: LayerType.Foreground, pos: vec2(x, y) })
+      }
+    }
+  }
+  return emptyBlocks
+}
+
+// Merges blocks into bigger WorldBlock[], but gives priority to blocks_top
+function mergeWorldBlocks(blocks_bottom: WorldBlock[], blocks_top: WorldBlock[]) {
+  const emptyBlocksMap = new Map<string, WorldBlock>()
+  for (const emptyBlock of blocks_top) {
+    const key = `${emptyBlock.pos.x},${emptyBlock.pos.y},${emptyBlock.layer}`
+    emptyBlocksMap.set(key, emptyBlock)
+  }
+
+  const filtered_blocks_bottom = blocks_bottom.filter((block) => {
+    const key = `${block.pos.x},${block.pos.y},${block.layer}`
+    return !emptyBlocksMap.has(key)
+  })
+
+  return filtered_blocks_bottom.concat(blocks_top)
+}
+
+function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
   try {
     let allBlocks: WorldBlock[] = []
 
@@ -501,6 +543,13 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
         }
         allBlocks = allBlocks.concat(finalBlocks)
       }
+    }
+
+    if (botData.moveEnabled) {
+      const emptyBlocks = getSelectedAreaAsEmptyBlocks(botData)
+      sendPrivateChatMessage('Blocks successfully moved', playerId)
+      botData.moveEnabled = false
+      allBlocks = mergeWorldBlocks(emptyBlocks, allBlocks)
     }
 
     addUndoItemWorldBlock(botData, allBlocks, oldBlock, blockPos)
@@ -685,7 +734,7 @@ function blueCoinBlockPlaced(
     const oldBlock = states.oldBlocks[i]
 
     if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
-      pasteBlocks(botData, blockPos, oldBlock)
+      pasteBlocks(botData, blockPos, oldBlock, playerId)
     }
   }
 }
