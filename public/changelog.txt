@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-05-27 Version 1.0.16
+- Bot: Fix .move command not shown in .help list
+
 2025-05-22 Version 1.0.15
 - Bot: Added .move command that moves blocks when pasting
 
