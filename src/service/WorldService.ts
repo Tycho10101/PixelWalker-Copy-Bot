@@ -1,4 +1,4 @@
-import { Block, createBlockPackets, DeserialisedStructure, Point, SendableBlockPacket } from 'pw-js-world'
+import { Block, BufferReader, createBlockPackets, DeserialisedStructure, Point, SendableBlockPacket } from 'pw-js-world'
 import {
   getPwBlocksByPwId,
   getPwBlocksByPwName,
@@ -68,8 +68,28 @@ async function placePackets(packets: SendableBlockPacket[], blockCount: number):
   return false
 }
 
+function updateBlockMap(blockPacket: SendableBlockPacket) {
+  const { positions, layer, blockId, extraFields } = blockPacket
+
+  const args = extraFields ? Block.deserializeArgs(BufferReader.from(extraFields)) : undefined
+
+  for (let i = 0, len = positions.length; i < len; i++) {
+    const { x, y } = positions[i]
+
+    getPwGameWorldHelper().blocks[layer][x][y] = new Block(blockId, args)
+  }
+}
+
 export function placeBlockPacket(blockPacket: SendableBlockPacket) {
   getPwGameClient().send('worldBlockPlacedPacket', blockPacket)
+
+  // By updating block map immediately ourselves, we make a compromise here.
+  // Positives:
+  // - We see block placements as instant (simplifies code in many places)
+  // Negatives:
+  // - Not being able to see old and new block difference in worldBlockPlacedPacketReceived when blocks are placed by bot (but we don't process these anyway)
+  // - If we send invalid blocks, we assume that they're valid (server should immediately close socket connection so shouldn't cause issues)
+  updateBlockMap(blockPacket)
 }
 
 export function getBlockName(pwBlockId: number): PwBlockName {

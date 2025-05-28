@@ -16,6 +16,8 @@ export type BotData = {
   spacingVec: Point
   smartRepeatEnabled: boolean
   moveEnabled: boolean
+  moveOperationPerformedOnce: boolean
+  replacedByLastMoveOperationBlocks: WorldBlock[]
   undoStack: UndoRedoItem[]
   redoStack: UndoRedoItem[]
 }
@@ -35,6 +37,8 @@ export function createBotData(): BotData {
     spacingVec: vec2(0, 0),
     smartRepeatEnabled: false,
     moveEnabled: false,
+    moveOperationPerformedOnce: false,
+    replacedByLastMoveOperationBlocks: [],
     undoStack: [],
     redoStack: [],
   }

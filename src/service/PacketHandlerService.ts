@@ -96,9 +96,9 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
 
 function moveCommandReceived(_args: string[], playerId: number) {
   const botData = getPlayerBotData()[playerId]
-  botData.moveEnabled = !botData.moveEnabled
+  botData.moveEnabled = true
 
-  sendPrivateChatMessage(`Next paste will ${botData.moveEnabled ? '' : 'not '}delete blocks in selected area`, playerId)
+  sendPrivateChatMessage(`Move mode enabled`, playerId)
 }
 
 async function placeallCommandReceived(_args: string[], playerId: number) {
@@ -345,7 +345,8 @@ function helpCommandReceived(args: string[], playerId: number) {
       break
     case 'move':
     case '.move':
-      sendPrivateChatMessage('.move - when performing next paste, deletes blocks in last selected area', playerId)
+      sendPrivateChatMessage('.move - enabled move mode, which deletes blocks in last selected area', playerId)
+      sendPrivateChatMessage('Move mode lasts until next area selection', playerId)
       break
     case 'import':
     case '.import':
@@ -498,7 +499,35 @@ function mergeWorldBlocks(blocks_bottom: WorldBlock[], blocks_top: WorldBlock[])
   return filtered_blocks_bottom.concat(blocks_top)
 }
 
-function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
+function applyMoveMode(botData: BotData, allBlocks: WorldBlock[], oldBlock: Block, blockPos: Point) {
+  if (botData.moveEnabled) {
+    const replacedByLastMoveOperationBlocks = allBlocks.map(
+      (block) =>
+        botData.replacedByLastMoveOperationBlocks.find(
+          (replacedBlock) => vec2.eq(block.pos, replacedBlock.pos) && block.layer === replacedBlock.layer,
+        ) ?? {
+          pos: block.pos,
+          layer: block.layer,
+          block: getBlockAt(block.pos, block.layer),
+        },
+    )
+
+    if (botData.moveOperationPerformedOnce) {
+      allBlocks = mergeWorldBlocks(botData.replacedByLastMoveOperationBlocks, allBlocks)
+
+      oldBlock = getBlockAt(blockPos, LayerType.Foreground)
+    }
+    const emptyBlocks = getSelectedAreaAsEmptyBlocks(botData)
+    allBlocks = mergeWorldBlocks(emptyBlocks, allBlocks)
+
+    botData.moveOperationPerformedOnce = true
+
+    botData.replacedByLastMoveOperationBlocks = replacedByLastMoveOperationBlocks
+  }
+  return { allBlocks, oldBlock }
+}
+
+function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
   try {
     let allBlocks: WorldBlock[] = []
 
@@ -522,6 +551,7 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerI
 
     for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
       const offsetPosX = pastePosBlocksFromPos.x + x * offsetSize.x
+      // TODO: fix this, so it doesn't require break, because it currently doesn't work when pasting structure where top left x is negative
       if (
         offsetPosX + botData.selectionLocalTopLeftPos.x >= mapWidth ||
         offsetPosX + botData.selectionLocalBottomRightPos.x < 0
@@ -547,17 +577,23 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerI
       }
     }
 
-    if (botData.moveEnabled) {
-      const emptyBlocks = getSelectedAreaAsEmptyBlocks(botData)
-      sendPrivateChatMessage('Blocks successfully moved', playerId)
-      botData.moveEnabled = false
-      allBlocks = mergeWorldBlocks(emptyBlocks, allBlocks)
-    }
+    // TODO: move this to function
+    const moveModeResult = applyMoveMode(botData, allBlocks, oldBlock, blockPos)
+    allBlocks = moveModeResult.allBlocks
+    oldBlock = moveModeResult.oldBlock
 
     addUndoItemWorldBlock(botData, allBlocks, oldBlock, blockPos)
     void placeMultipleBlocks(allBlocks)
   } finally {
     botData.repeatVec = vec2(1, 1)
+  }
+}
+
+function disableMoveMode(botData: BotData, playerId: number) {
+  if (botData.moveEnabled) {
+    botData.moveEnabled = false
+    botData.moveOperationPerformedOnce = false
+    sendPrivateChatMessage('Move mode disabled', playerId)
   }
 }
 
@@ -596,6 +632,8 @@ function selectBlocks(botData: BotData, blockPos: Point, oldBlock: Block, player
     }
 
     botData.selectedBlocks = getBlocksInArea(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
+
+    disableMoveMode(botData, playerId)
   }
 
   sendPrivateChatMessage(`Selected ${selectedTypeText} x: ${blockPos.x} y: ${blockPos.y}`, playerId)
@@ -736,7 +774,7 @@ function blueCoinBlockPlaced(
     const oldBlock = states.oldBlocks[i]
 
     if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
-      pasteBlocks(botData, blockPos, oldBlock, playerId)
+      pasteBlocks(botData, blockPos, oldBlock)
     }
   }
 }
