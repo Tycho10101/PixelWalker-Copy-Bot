@@ -17,6 +17,9 @@ export type BotData = {
   smartRepeatEnabled: boolean
   moveEnabled: boolean
   moveOperationPerformedOnce: boolean
+  maskForegroundEnabled: boolean
+  maskBackgroundEnabled: boolean
+  maskOverlayEnabled: boolean
   replacedByLastMoveOperationBlocks: WorldBlock[]
   undoStack: UndoRedoItem[]
   redoStack: UndoRedoItem[]
@@ -38,6 +41,9 @@ export function createBotData(): BotData {
     smartRepeatEnabled: false,
     moveEnabled: false,
     moveOperationPerformedOnce: false,
+    maskForegroundEnabled: true,
+    maskBackgroundEnabled: true,
+    maskOverlayEnabled: true,
     replacedByLastMoveOperationBlocks: [],
     undoStack: [],
     redoStack: [],

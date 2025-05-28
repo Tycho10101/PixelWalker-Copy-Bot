@@ -81,6 +81,9 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
     case '.move':
       moveCommandReceived(args, playerId)
       break
+    case '.mask':
+      maskCommandReceived(args, playerId)
+      break
     case '.test':
       await testCommandReceived(args, playerId)
       break
@@ -91,6 +94,40 @@ async function playerChatPacketReceived(data: ProtoGen.PlayerChatPacket) {
       if (args[0].startsWith('.')) {
         sendPrivateChatMessage('ERROR! Unrecognised command', playerId)
       }
+  }
+}
+
+function maskCommandReceived(args: string[], playerId: number) {
+  const botData = getPlayerBotData()[playerId]
+  if (args.includes('all')) {
+    botData.maskBackgroundEnabled = true
+    botData.maskForegroundEnabled = true
+    botData.maskOverlayEnabled = true
+    sendPrivateChatMessage(`Mask all enabled`, playerId)
+    return
+  }
+
+  botData.maskBackgroundEnabled = false
+  botData.maskForegroundEnabled = false
+  botData.maskOverlayEnabled = false
+
+  if (args.includes('background')) {
+    botData.maskBackgroundEnabled = true
+    sendPrivateChatMessage(`Mask background enabled`, playerId)
+  }
+
+  if (args.includes('foreground')) {
+    botData.maskForegroundEnabled = true
+    sendPrivateChatMessage(`Mask foreground enabled`, playerId)
+  }
+
+  if (args.includes('overlay')) {
+    botData.maskOverlayEnabled = true
+    sendPrivateChatMessage(`Mask overlay enabled`, playerId)
+  }
+
+  if (!botData.maskBackgroundEnabled && !botData.maskForegroundEnabled && !botData.maskOverlayEnabled) {
+    sendPrivateChatMessage(`ERROR! Correct usage is .mask [all | background | foreground | overlay]`, playerId)
   }
 }
 
@@ -285,7 +322,7 @@ function helpCommandReceived(args: string[], playerId: number) {
   if (args.length == 1) {
     sendPrivateChatMessage('Gold coin - select blocks', playerId)
     sendPrivateChatMessage('Blue coin - paste blocks', playerId)
-    sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo .import .move', playerId)
+    sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo .import .move .mask', playerId)
     sendPrivateChatMessage('See more info about each command via .help [command]', playerId)
     sendPrivateChatMessage('You can also use the bot: piratux.github.io/Pixel-Walker-Copy-Bot/', playerId)
     return
@@ -347,6 +384,15 @@ function helpCommandReceived(args: string[], playerId: number) {
     case '.move':
       sendPrivateChatMessage('.move - enabled move mode, which deletes blocks in last selected area', playerId)
       sendPrivateChatMessage('Move mode lasts until next area selection', playerId)
+      break
+    case 'mask':
+    case '.mask':
+      sendPrivateChatMessage('.mask [all | background | foreground | overlay] - masks layers when pasting', playerId)
+      sendPrivateChatMessage(
+        `Example usage 1: .mask foreground background (only pastes foreground and background blocks)`,
+        playerId,
+      )
+      sendPrivateChatMessage(`Example usage 2: .mask all (resets to default mask)`, playerId)
       break
     case 'import':
     case '.import':
@@ -527,6 +573,22 @@ function applyMoveMode(botData: BotData, allBlocks: WorldBlock[], oldBlock: Bloc
   return { allBlocks, oldBlock }
 }
 
+function filterByLayerMasks(allBlocks: WorldBlock[], botData: BotData) {
+  return allBlocks.filter((block) => {
+    if (block.layer === LayerType.Background) {
+      return botData.maskBackgroundEnabled
+    }
+
+    if (block.layer === LayerType.Foreground) {
+      return botData.maskForegroundEnabled
+    }
+
+    if (block.layer === LayerType.Overlay) {
+      return botData.maskOverlayEnabled
+    }
+  })
+}
+
 function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
   try {
     let allBlocks: WorldBlock[] = []
@@ -581,6 +643,8 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
     const moveModeResult = applyMoveMode(botData, allBlocks, oldBlock, blockPos)
     allBlocks = moveModeResult.allBlocks
     oldBlock = moveModeResult.oldBlock
+
+    allBlocks = filterByLayerMasks(allBlocks, botData)
 
     addUndoItemWorldBlock(botData, allBlocks, oldBlock, blockPos)
     void placeMultipleBlocks(allBlocks)
