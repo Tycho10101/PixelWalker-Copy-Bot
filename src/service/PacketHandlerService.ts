@@ -545,7 +545,7 @@ function mergeWorldBlocks(blocks_bottom: WorldBlock[], blocks_top: WorldBlock[])
   return filtered_blocks_bottom.concat(blocks_top)
 }
 
-function applyMoveMode(botData: BotData, allBlocks: WorldBlock[], oldBlock: Block, blockPos: Point) {
+function applyMoveMode(botData: BotData, allBlocks: WorldBlock[]) {
   if (botData.moveEnabled) {
     const replacedByLastMoveOperationBlocks = allBlocks.map(
       (block) =>
@@ -560,8 +560,6 @@ function applyMoveMode(botData: BotData, allBlocks: WorldBlock[], oldBlock: Bloc
 
     if (botData.moveOperationPerformedOnce) {
       allBlocks = mergeWorldBlocks(botData.replacedByLastMoveOperationBlocks, allBlocks)
-
-      oldBlock = getBlockAt(blockPos, LayerType.Foreground)
     }
     const emptyBlocks = getSelectedAreaAsEmptyBlocks(botData)
     allBlocks = mergeWorldBlocks(emptyBlocks, allBlocks)
@@ -570,7 +568,7 @@ function applyMoveMode(botData: BotData, allBlocks: WorldBlock[], oldBlock: Bloc
 
     botData.replacedByLastMoveOperationBlocks = replacedByLastMoveOperationBlocks
   }
-  return { allBlocks, oldBlock }
+  return allBlocks
 }
 
 function filterByLayerMasks(allBlocks: WorldBlock[], botData: BotData) {
@@ -589,7 +587,7 @@ function filterByLayerMasks(allBlocks: WorldBlock[], botData: BotData) {
   })
 }
 
-function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
+function pasteBlocks(botData: BotData, blockPos: Point) {
   try {
     let allBlocks: WorldBlock[] = []
 
@@ -601,15 +599,15 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
 
     const pastePosBlocksFromPos = vec2.add(blockPos, botData.selectionLocalTopLeftPos)
     const pastePosBlocksToPos = vec2.add(blockPos, botData.selectionLocalBottomRightPos)
-    const pastePosBlocks = getBlocksInArea(oldBlock, blockPos, pastePosBlocksFromPos, pastePosBlocksToPos)
+    const pastePosBlocks = getBlocksInArea(pastePosBlocksFromPos, pastePosBlocksToPos)
 
     const nextBlocksXFromPos = vec2.add(pastePosBlocksFromPos, vec2(offsetSize.x, 0))
     const nextBlocksXToPos = vec2.add(pastePosBlocksToPos, vec2(offsetSize.x, 0))
-    const nextBlocksX = getBlocksInArea(oldBlock, blockPos, nextBlocksXFromPos, nextBlocksXToPos)
+    const nextBlocksX = getBlocksInArea(nextBlocksXFromPos, nextBlocksXToPos)
 
     const nextBlocksYFromPos = vec2.add(pastePosBlocksFromPos, vec2(0, offsetSize.y))
     const nextBlocksYToPos = vec2.add(pastePosBlocksToPos, vec2(0, offsetSize.y))
-    const nextBlocksY = getBlocksInArea(oldBlock, blockPos, nextBlocksYFromPos, nextBlocksYToPos)
+    const nextBlocksY = getBlocksInArea(nextBlocksYFromPos, nextBlocksYToPos)
 
     for (let x = 0; x < Math.abs(botData.repeatVec.x); x++) {
       const offsetPosX = pastePosBlocksFromPos.x + x * offsetSize.x
@@ -639,14 +637,10 @@ function pasteBlocks(botData: BotData, blockPos: Point, oldBlock: Block) {
       }
     }
 
-    // TODO: move this to function
-    const moveModeResult = applyMoveMode(botData, allBlocks, oldBlock, blockPos)
-    allBlocks = moveModeResult.allBlocks
-    oldBlock = moveModeResult.oldBlock
-
+    allBlocks = applyMoveMode(botData, allBlocks)
     allBlocks = filterByLayerMasks(allBlocks, botData)
 
-    addUndoItemWorldBlock(botData, allBlocks, oldBlock, blockPos)
+    addUndoItemWorldBlock(botData, allBlocks)
     void placeMultipleBlocks(allBlocks)
   } finally {
     botData.repeatVec = vec2(1, 1)
@@ -661,7 +655,7 @@ function disableMoveMode(botData: BotData, playerId: number) {
   }
 }
 
-function selectBlocks(botData: BotData, blockPos: Point, oldBlock: Block, playerId: number) {
+function selectBlocks(botData: BotData, blockPos: Point, playerId: number) {
   let selectedTypeText: string
   if ([BotState.NONE, BotState.SELECTED_TO].includes(botData.botState)) {
     selectedTypeText = 'from'
@@ -695,7 +689,7 @@ function selectBlocks(botData: BotData, blockPos: Point, oldBlock: Block, player
       botData.selectionLocalBottomRightPos.y = 0
     }
 
-    botData.selectedBlocks = getBlocksInArea(oldBlock, blockPos, botData.selectedFromPos, botData.selectedToPos)
+    botData.selectedBlocks = getBlocksInArea(botData.selectedFromPos, botData.selectedToPos)
 
     disableMoveMode(botData, playerId)
   }
@@ -756,20 +750,11 @@ function getBotData(playerId: number) {
 }
 
 function createOldWorldBlocks(positions: vec2[], oldBlocks: Block[]) {
-  const worldBlocks: WorldBlock[] = []
-  for (let i = 0; i < oldBlocks.length; i++) {
-    const oldBlock = oldBlocks[i]
-    const position = positions[i]
-
-    const worldBlock = {
-      block: oldBlock,
-      layer: LayerType.Foreground,
-      pos: position,
-    }
-    worldBlocks.push(worldBlock)
-  }
-
-  return worldBlocks
+  return oldBlocks.map((block, idx) => ({
+    block: block,
+    layer: LayerType.Foreground,
+    pos: positions[idx],
+  }))
 }
 
 function goldCoinBlockPlaced(
@@ -797,9 +782,8 @@ function goldCoinBlockPlaced(
   const botData = getBotData(playerId)
 
   const blockPos = data.positions[0]
-  const oldBlock = states.oldBlocks[0]
 
-  selectBlocks(botData, blockPos, oldBlock, playerId)
+  selectBlocks(botData, blockPos, playerId)
 }
 
 function blueCoinBlockPlaced(
@@ -835,10 +819,9 @@ function blueCoinBlockPlaced(
   // This is not ideal, but good enough
   for (let i = 0; i < data.positions.length; i++) {
     const blockPos = data.positions[i]
-    const oldBlock = states.oldBlocks[i]
 
     if (getBlockName(data.blockId) === PwBlockName.COIN_BLUE) {
-      pasteBlocks(botData, blockPos, oldBlock)
+      pasteBlocks(botData, blockPos)
     }
   }
 }
@@ -863,32 +846,19 @@ function getMinMaxPos(pos1: Point, pos2: Point) {
   return [minPos, maxPos]
 }
 
-function getBlocksInArea(oldBlock: Block, oldBlockPos: Point, fromPos: Point, toPos: Point): WorldBlock[] {
+function getBlocksInArea(fromPos: Point, toPos: Point): WorldBlock[] {
   const [minPos, maxPos] = getMinMaxPos(fromPos, toPos)
   const data: WorldBlock[] = []
   for (let x = 0; x <= maxPos.x - minPos.x; x++) {
     for (let y = 0; y <= maxPos.y - minPos.y; y++) {
       const sourcePos = vec2.add(minPos, vec2(x, y))
 
-      let foregroundBlock = getBlockAt(sourcePos, LayerType.Foreground)
-      if (vec2.eq(sourcePos, oldBlockPos)) {
-        foregroundBlock = oldBlock
-      }
-
       for (let i = 0; i < TOTAL_PW_LAYERS; i++) {
-        if ((i as LayerType) !== LayerType.Foreground) {
-          data.push({
-            block: getBlockAt(sourcePos, i),
-            pos: vec2(x, y),
-            layer: i,
-          })
-        } else {
-          data.push({
-            block: foregroundBlock,
-            pos: vec2(x, y),
-            layer: LayerType.Foreground,
-          })
-        }
+        data.push({
+          block: getBlockAt(sourcePos, i),
+          pos: vec2(x, y),
+          layer: i,
+        })
       }
     }
   }
