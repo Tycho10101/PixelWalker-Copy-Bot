@@ -75,7 +75,7 @@ const showDrawer = computed(() => {
   return windowWidth.value >= 800
 })
 
-const drawer = ref(showDrawer)
+const drawer = showDrawer.value ? ref(true) : ref(false)
 
 function openChangelog() {
   window.open(changelogLocation)
