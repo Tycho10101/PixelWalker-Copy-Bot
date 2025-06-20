@@ -324,7 +324,7 @@ function helpCommandReceived(args: string[], playerId: number) {
     sendPrivateChatMessage('Blue coin - paste blocks', playerId)
     sendPrivateChatMessage('Commands: .help .ping .paste .smartpaste .undo .redo .import .move .mask', playerId)
     sendPrivateChatMessage('See more info about each command via .help [command]', playerId)
-    sendPrivateChatMessage('You can also use the bot: piratux.github.io/Pixel-Walker-Copy-Bot/', playerId)
+    sendPrivateChatMessage('You can also use the bot: piratux.github.io/PixelWalker-Copy-Bot/', playerId)
     return
   }
 

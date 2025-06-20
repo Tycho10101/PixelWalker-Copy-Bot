@@ -45,7 +45,7 @@ const router = useRouter()
 const route = useRoute()
 const routePath = computed(() => route.path)
 
-const changelogLocation = '/Pixel-Walker-Copy-Bot/changelog.txt'
+const changelogLocation = '/PixelWalker-Copy-Bot/changelog.txt'
 const changelogLatestVersionLine = ref('')
 
 const devViewEnabled = isEnvDevViewEnabled()

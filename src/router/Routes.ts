@@ -1,4 +1,4 @@
-const basePath = '/Pixel-Walker-Copy-Bot'
+const basePath = '/PixelWalker-Copy-Bot'
 
 export const LoginViewRoute = {
   path: `${basePath}/login`,
