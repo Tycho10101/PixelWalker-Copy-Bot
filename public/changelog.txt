@@ -1,5 +1,8 @@
 PixelWalker copy bot changelog
 
+2025-06-20 Version 1.2.0
+- Website: Remade website layout
+
 2025-05-28 Version 1.1.0
 - Bot: Improved .move command, allowing it to continuously move selected blocks non-destructively
 - Bot: Added .mask command, that allows to filter which layer blocks get pasted
