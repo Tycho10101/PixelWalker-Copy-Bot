@@ -7,13 +7,13 @@ import { BotState } from '@/enum/BotState.ts'
 import { WorldBlock } from '@/type/WorldBlock.ts'
 import { sendGlobalChatMessage, sendPrivateChatMessage } from '@/service/ChatMessageService.ts'
 import { vec2 } from '@basementuniverse/vec'
-import { getBlockAt, getBlockName, placeMultipleBlocks, placeWorldDataBlocks } from '@/service/WorldService.ts'
 import {
-  addUndoItemDeserializedStructure,
-  addUndoItemWorldBlock,
-  performRedo,
-  performUndo,
-} from '@/service/UndoRedoService.ts'
+  convertDeserializedStructureToWorldBlocks,
+  getBlockAt,
+  getBlockName,
+  placeMultipleBlocks,
+} from '@/service/WorldService.ts'
+import { addUndoItemWorldBlock, performRedo, performUndo } from '@/service/UndoRedoService.ts'
 import { PwBlockName } from '@/gen/PwBlockName.ts'
 import { performRuntimeTests } from '@/test/RuntimeTests.ts'
 import { ProtoGen, PWApiClient, PWGameClient } from 'pw-js-api'
@@ -21,11 +21,11 @@ import {
   getAllWorldBlocks,
   pwAuthenticate,
   pwCheckEdit,
-  pwClearWorld,
+  pwCreateEmptyBlocks,
   pwEnterEditKey,
   pwJoinWorld,
 } from '@/service/PWClientService.ts'
-import { importFromPwlvl } from '@/service/PwlvlImporterService.ts'
+import { getImportedFromPwlvlData } from '@/service/PwlvlImporterService.ts'
 import { getWorldIdIfUrl } from '@/service/WorldIdExtractorService.ts'
 import { handleException } from '@/util/Exception.ts'
 import { GameError } from '@/class/GameError.ts'
@@ -269,22 +269,30 @@ async function importCommandReceived(args: string[], playerId: number) {
 
       sendGlobalChatMessage(`Importing world from ${worldId}`)
 
+      const botData = getPlayerBotData()[playerId]
+
+      let allBlocks: WorldBlock[]
       if (partialImportUsed) {
-        const destPos = vec2(destToX, destToY)
-        const botData = getPlayerBotData()[playerId]
-        addUndoItemDeserializedStructure(botData, blocks, destPos)
-        const success = await placeWorldDataBlocks(blocks, destPos)
-        let message: string
-        if (success) {
-          message = 'Finished importing world.'
-          sendGlobalChatMessage(message)
-        } else {
-          message = 'ERROR! Failed to import world.'
-          sendGlobalChatMessage(message)
-        }
+        allBlocks = convertDeserializedStructureToWorldBlocks(blocks)
       } else {
-        await pwClearWorld()
-        await importFromPwlvl(blocks.toBuffer())
+        const emptyBlocks = pwCreateEmptyBlocks(getPwGameWorldHelper())
+        const worldData = getImportedFromPwlvlData(blocks.toBuffer())
+        const emptyBlocksWorldBlocks = convertDeserializedStructureToWorldBlocks(emptyBlocks)
+        const worldDataWorldBlocks = convertDeserializedStructureToWorldBlocks(worldData)
+        allBlocks = mergeWorldBlocks(emptyBlocksWorldBlocks, worldDataWorldBlocks)
+      }
+      allBlocks = filterByLayerMasks(allBlocks, botData)
+
+      addUndoItemWorldBlock(botData, allBlocks)
+
+      const success = await placeMultipleBlocks(allBlocks)
+      let message: string
+      if (success) {
+        message = 'Finished importing world.'
+        sendGlobalChatMessage(message)
+      } else {
+        message = 'ERROR! Failed to import world.'
+        sendGlobalChatMessage(message)
       }
     } catch (e) {
       handleException(e)
