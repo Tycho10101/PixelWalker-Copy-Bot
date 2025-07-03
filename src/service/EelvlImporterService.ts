@@ -102,9 +102,9 @@ function readEelvlBlock(bytes: ByteArray, eelvlBlockId: number) {
   switch (eelvlBlockId as EelvlBlockId) {
     case EelvlBlockId.PORTAL:
     case EelvlBlockId.PORTAL_INVISIBLE:
-      eelvlBlock.intParameter = bytes.readInt()
+      eelvlBlock.intParameter = bytes.readUTF()
       eelvlBlock.portalId = bytes.readInt()
-      eelvlBlock.portalTarget = bytes.readInt()
+      eelvlBlock.portalTarget = bytes.readUTF()
       break
     case EelvlBlockId.SIGN_NORMAL:
       eelvlBlock.signText = bytes.readUTF().replaceAll('\\n', '\n')
